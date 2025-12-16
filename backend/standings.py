@@ -7,8 +7,11 @@ _SEASON_TYPE = "Regular Season"
 
 class Standings:
   def __init__(self):
+    # Rudimentary cache system
     self.items = {}
     self.last_access = {}
+
+    # Delay before updating cache
     self.pull_wait_seconds = 60
 
   def getStandings(self, season_id: str) -> dict:
@@ -26,6 +29,7 @@ class Standings:
     df = df.rename(columns={
       "TeamName" : "name",
       "TeamCity" : "city",
+      "TeamID" : "id",
       "Conference" : "conference",
       "ClinchIndicator" : "clinch",
       "PlayoffRank" : "seed",
@@ -37,7 +41,8 @@ class Standings:
       "DiffPointsPG" : "diff"
     })
 
-    df = df[["name", "city", "conference", "clinch", "seed", "wins", "losses", "pct", "gamesBack", "streak", "diff"]]
+    df = df[["name", "city", "id", "conference", "clinch", "seed", "wins", "losses", "pct", "gamesBack", "streak", "diff"]]
+    df["img_href"] = "https://cdn.nba.com/logos/nba/" + df['id'].astype(str) + "/primary/D/logo.svg"
 
     conference_df = {
       key: group_df
@@ -55,8 +60,6 @@ class Standings:
       "west" : conferences["West"]
     }
 
-    return res
+    self.items[season_id] = res
 
-if __name__ == "__main__":
-  s = Standings()
-  print(s.getStandings("2023"))
+    return res
