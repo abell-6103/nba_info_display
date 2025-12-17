@@ -20,10 +20,10 @@ export default function StandingsScreen() {
     setStandingsWest(undefined);
   }
 
-  const getStandings = async() => {
+  const getStandings = async(target: string) => {
     setLoading(true);
     try {
-      const response = await fetch(api_uri + `/standings/${target_season}`);
+      const response = await fetch(api_uri + `/standings/${target}`);
       if (response.ok) {
         const json = await response.json();
         setCurrSeason(json.season);
@@ -31,7 +31,7 @@ export default function StandingsScreen() {
         setStandingsWest(json.west);
         setLoadSuccess(true);
       } else {
-        console.error(`Couldn't load standings from season ${target_season}`);
+        console.error(`Couldn't load standings from season ${target}`);
         clearData();
         setLoadSuccess(false);
       }
@@ -44,7 +44,7 @@ export default function StandingsScreen() {
   }
 
   useEffect(() => {
-    getStandings();
+    getStandings(target_season);
   }, []);
 
   function StandingsRow({row} : {row: StandingsRowInfo}) {
