@@ -5,7 +5,8 @@ import { styles } from '../styles';
 import { StandingsRowInfo } from '../types';
 
 export default function StandingsScreen() {
-  const api_uri = "http://127.0.0.1:8000";
+  const api_uri = process.env.EXPO_PUBLIC_API_URI;
+
   const [loading, setLoading] = useState(true);
   const [loadSuccess, setLoadSuccess] = useState(false);
   const [target_season, setTargetSeason] = useState("2025-26");
