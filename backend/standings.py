@@ -1,6 +1,6 @@
 from nba_api.stats.endpoints import leaguestandingsv3
 import pandas as pd
-from time import time, sleep
+from time import monotonic, sleep
 
 from callQueue import Call, CallQueue
 
@@ -54,18 +54,19 @@ class Standings:
 
   def getStandings(self, season_id: str) -> dict:
     # If the data is already cached and it's been a short time, just return cached data
-    if season_id in self.items.keys() and (time() - self.last_access[season_id]) <= self.wait_time:
+    if season_id in self.items.keys() and (monotonic() - self.last_access[season_id]) <= self.wait_time:
       return self.items[season_id]
     
     c = self.call_queue.addCall()
-    while (not c.isReady()):
-      sleep()
+    delay = c.ready_time - monotonic()
+    if (delay > 0):
+      sleep(delay)
 
     try:
       df = leaguestandingsv3.LeagueStandingsV3(league_id=_LEAGUE_ID, season=season_id, season_type=_SEASON_TYPE).get_data_frames()[0]
     except:
       return None
-    self.last_access[season_id] = time()
+    self.last_access[season_id] = monotonic()
 
     df = Standings._formatDF(df)
     conferences = Standings._getConferenceDicts(df)
