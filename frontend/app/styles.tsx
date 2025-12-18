@@ -23,4 +23,39 @@ export const styles = StyleSheet.create({
     width: "100%",
     backgroundColor: '#fff',
   },
+  tableCell: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  teamLogo: {
+    width: 24,
+    height: 24,
+    resizeMode: 'contain',
+  },
+  ConferencePressableContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    borderWidth: 1,
+    borderRadius: 12,
+    margin: 12,
+    overflow: 'hidden'
+  },
+  ConferenceTextBox: {
+    flex: 1,
+    padding: 4,
+    alignItems: 'center',
+  },
+  ViewSelected: {
+    backgroundColor: '#25292e',
+  },
+  ViewUnselected: {
+    backgroundColor: '#fff',
+  },
+  TextSelected: {
+    color: '#fff',
+    fontWeight: '700'
+  },
+  TextUnselected: {
+    color: '#000',
+  }
 });

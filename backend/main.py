@@ -4,13 +4,19 @@ import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
+from callQueue import CallQueue
 from standings import Standings
 
 load_dotenv("../.env")
 ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS").split(",")
 
+calls_per_minute = 10
+minute_length = 60
+call_delay = minute_length / calls_per_minute
+
 app = FastAPI()
-standings = Standings()
+call_queue = CallQueue(call_delay)
+standings = Standings(call_queue)
 
 app.add_middleware(
     CORSMiddleware,

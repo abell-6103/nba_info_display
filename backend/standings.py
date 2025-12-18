@@ -1,15 +1,18 @@
 from nba_api.stats.endpoints import leaguestandingsv3
 import pandas as pd
-from time import time
+from time import time, sleep
+
+from callQueue import Call, CallQueue
 
 _LEAGUE_ID = "00"
 _SEASON_TYPE = "Regular Season"
 
 class Standings:
-  def __init__(self):
+  def __init__(self, call_queue: CallQueue):
     # Rudimentary cache system
     self.items = {}
     self.last_access = {}
+    self.call_queue = call_queue
 
     # Delay before updating cache
     self.wait_time = 60
@@ -34,7 +37,7 @@ class Standings:
   def _formatDF(df: pd.DataFrame) -> pd.DataFrame:
     df = Standings._renameDF(df)
     df = df[["name", "city", "id", "conference", "clinch", "seed", "wins", "losses", "pct", "gamesBack", "streak", "diff"]]
-    df["img_href"] = "https://cdn.nba.com/logos/nba/" + df['id'].astype(str) + "/primary/D/logo.svg"
+    df["img_href"] = "https://cdn.nba.com/logos/nba/" + df['id'].astype(str) + "/primary/L/logo.svg"
     return df
 
   @staticmethod
@@ -54,6 +57,10 @@ class Standings:
     if season_id in self.items.keys() and (time() - self.last_access[season_id]) <= self.wait_time:
       return self.items[season_id]
     
+    c = self.call_queue.addCall()
+    while (not c.isReady()):
+      sleep()
+
     try:
       df = leaguestandingsv3.LeagueStandingsV3(league_id=_LEAGUE_ID, season=season_id, season_type=_SEASON_TYPE).get_data_frames()[0]
     except:

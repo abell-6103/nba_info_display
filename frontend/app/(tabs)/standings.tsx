@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Text, ActivityIndicator, View, ScrollView } from 'react-native';
+import { Text, ActivityIndicator, View, ScrollView, Image, Pressable } from 'react-native';
 import { DataTable } from 'react-native-paper';
 import { styles } from '../styles';
 import { StandingsRowInfo } from '../types';
@@ -44,20 +44,53 @@ export default function StandingsScreen() {
     setLoading(false);
   }
 
+  function getStreakText(streak: number): string {
+    const magnitude = Math.abs(streak);
+    if (magnitude === 0) {
+      return "-";
+    } else if (streak > 0) {
+      return `W${magnitude}`;
+    } else {
+      return `L${magnitude}`;
+    }
+  }
+
   useEffect(() => {
     getStandings(target_season);
   }, []);
 
+  function ConferencePressable() {
+    const flipConference = () => {
+      showEast(!east_visible);
+    }
+    return (
+      <Pressable onPress={flipConference}>
+        <View style={styles.ConferencePressableContainer}>
+          <View style={[styles.ConferenceTextBox, east_visible ? styles.ViewSelected : styles.ViewUnselected]}>
+            <Text style={east_visible ? styles.TextSelected : styles.TextUnselected}>East</Text>
+          </View>
+          <View style={[styles.ConferenceTextBox, !east_visible ? styles.ViewSelected : styles.ViewUnselected]}>
+            <Text style={!east_visible ? styles.TextSelected : styles.TextUnselected}>West</Text>
+          </View>
+        </View>
+      </Pressable>
+    )
+  }
+
   function StandingsRow({row} : {row: StandingsRowInfo}) {
     return (
       <DataTable.Row>
-        <DataTable.Cell> </DataTable.Cell>
-        <DataTable.Cell>{row.seed}</DataTable.Cell>
-        <DataTable.Cell>{row.city}</DataTable.Cell>
-        <DataTable.Cell>{`${row.wins}-${row.losses}`}</DataTable.Cell>
-        <DataTable.Cell>{row.gamesBack}</DataTable.Cell>
-        <DataTable.Cell>{row.pct}</DataTable.Cell>
-        <DataTable.Cell>{row.streak}</DataTable.Cell>
+        <DataTable.Cell style={[styles.tableCell, {justifyContent: 'center'}]}>{row.seed}</DataTable.Cell>
+        <DataTable.Cell>
+            <View style={styles.tableCell}>
+              <Image source={{uri: row.img_href}} style={styles.teamLogo}/>
+              <Text>{row.name}</Text>
+            </View>
+        </DataTable.Cell>
+        <DataTable.Cell style={styles.tableCell}>{`${row.wins}-${row.losses}`}</DataTable.Cell>
+        <DataTable.Cell style={styles.tableCell}>{row.gamesBack}</DataTable.Cell>
+        <DataTable.Cell style={styles.tableCell}>{row.pct.toPrecision(3)}</DataTable.Cell>
+        <DataTable.Cell style={styles.tableCell}>{getStreakText(row.streak)}</DataTable.Cell>
       </DataTable.Row>
     );
   }
@@ -79,8 +112,8 @@ export default function StandingsScreen() {
         ) : (
         loadSuccess ? (
           <View style={styles.table}>
+            <ConferencePressable />
             <DataTable.Header>
-              <DataTable.Title> </DataTable.Title>
               <DataTable.Title>Rank</DataTable.Title>
               <DataTable.Title>Team</DataTable.Title>
               <DataTable.Title>Record</DataTable.Title>
