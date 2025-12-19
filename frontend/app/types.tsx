@@ -9,6 +9,7 @@ type StandingsRowInfo = {
   pct: number;
   gamesBack: number;
   streak: number;
+  diff: number;
   img_href: string;
 }
 

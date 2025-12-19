@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Text, ActivityIndicator, View, ScrollView, Image, Pressable } from 'react-native';
-import { DataTable } from 'react-native-paper';
 import { styles } from '../styles';
 import { StandingsRowInfo } from '../types';
 
 export default function StandingsScreen() {
   const api_uri = process.env.EXPO_PUBLIC_API_URI;
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // Initialize to true so that page loads with progress wheel
   const [loadSuccess, setLoadSuccess] = useState(false);
   const [target_season, setTargetSeason] = useState("2025-26");
   const [curr_season, setCurrSeason] = useState(undefined);
@@ -55,6 +54,26 @@ export default function StandingsScreen() {
     }
   }
 
+  function getClinchText(clinch: string): string {
+    const divisions = [' - sw', ' - c', ' - nw', ' - a', ' - se', ' - p'];
+    const conferences = [' - w', ' - e'];
+    if (divisions.includes(clinch)) {
+      return "Clinched Division";
+    } else if (conferences.includes(clinch)) {
+      return "Clinched Conference";
+    } else if (clinch === ' - x') {
+      return "Clinched Playoff Berth";
+    } else if (clinch === ' - ps') {
+      return "Clinched Postseason";
+    } else if (clinch === ' - pi') {
+      return "Clinched Play-In Berth";
+    } else if (clinch === ' - o') {
+      return "Eliminated from contention";
+    } else {
+      return "";
+    }
+  }
+
   useEffect(() => {
     getStandings(target_season);
   }, []);
@@ -66,11 +85,11 @@ export default function StandingsScreen() {
     return (
       <Pressable onPress={flipConference}>
         <View style={styles.ConferencePressableContainer}>
-          <View style={[styles.ConferenceTextBox, east_visible ? styles.ViewSelected : styles.ViewUnselected]}>
-            <Text style={east_visible ? styles.TextSelected : styles.TextUnselected}>East</Text>
-          </View>
           <View style={[styles.ConferenceTextBox, !east_visible ? styles.ViewSelected : styles.ViewUnselected]}>
             <Text style={!east_visible ? styles.TextSelected : styles.TextUnselected}>West</Text>
+          </View>
+          <View style={[styles.ConferenceTextBox, east_visible ? styles.ViewSelected : styles.ViewUnselected]}>
+            <Text style={east_visible ? styles.TextSelected : styles.TextUnselected}>East</Text>
           </View>
         </View>
       </Pressable>
@@ -79,19 +98,38 @@ export default function StandingsScreen() {
 
   function StandingsRow({row} : {row: StandingsRowInfo}) {
     return (
-      <DataTable.Row>
-        <DataTable.Cell style={[styles.tableCell, {justifyContent: 'center'}]}>{row.seed}</DataTable.Cell>
-        <DataTable.Cell>
-            <View style={styles.tableCell}>
-              <Image source={{uri: row.img_href}} style={styles.teamLogo}/>
-              <Text>{row.name}</Text>
+      <View style={styles.tableRow}>
+        <View style={[styles.tableCell, {flex: 1}]}>
+          <Text style={styles.major_text}>{row.seed}</Text>
+        </View>
+        <View style={[styles.tableCell, {flex: 4, justifyContent: 'flex-start'}]}>
+          <Image source={{uri: row.img_href}} style={styles.teamLogo}/>
+          {row.clinch === "" ? (
+            <Text style={styles.bold_text}>{row.name}</Text>
+          ) : (
+            <View style={{flexDirection: 'column'}}>
+              <Text style={styles.bold_text}>{row.name}</Text>
+              <Text style={styles.minor_text}>{getClinchText(row.clinch)}</Text>
             </View>
-        </DataTable.Cell>
-        <DataTable.Cell style={styles.tableCell}>{`${row.wins}-${row.losses}`}</DataTable.Cell>
-        <DataTable.Cell style={styles.tableCell}>{row.gamesBack}</DataTable.Cell>
-        <DataTable.Cell style={styles.tableCell}>{row.pct.toPrecision(3)}</DataTable.Cell>
-        <DataTable.Cell style={styles.tableCell}>{getStreakText(row.streak)}</DataTable.Cell>
-      </DataTable.Row>
+          )}
+        </View>
+        <View style={[styles.tableCell, {flex: 2, flexDirection: 'column'}]}>
+          <Text style={styles.bold_text}>{row.wins}-{row.losses}</Text>
+          <Text style={styles.minor_text}>W-L</Text>
+        </View>
+        <View style={[styles.tableCell, {flex: 2, flexDirection: 'column'}]}>
+          <Text style={styles.bold_text}>{row.gamesBack === 0 ? '-' : row.gamesBack}</Text>
+          <Text style={styles.minor_text}>GB</Text>
+        </View>
+        <View style={[styles.tableCell, {flex: 2, flexDirection: 'column'}]}>
+          <Text style={styles.bold_text}>{getStreakText(row.streak)}</Text>
+          <Text style={styles.minor_text}>STRK</Text>
+        </View>
+        <View style={[styles.tableCell, {flex: 2, flexDirection: 'column'}]}>
+          <Text style={styles.bold_text}>{row.diff}</Text>
+          <Text style={styles.minor_text}>DIFF</Text>
+        </View>
+      </View>
     );
   }
 
@@ -113,14 +151,6 @@ export default function StandingsScreen() {
         loadSuccess ? (
           <View style={styles.table}>
             <ConferencePressable />
-            <DataTable.Header>
-              <DataTable.Title>Rank</DataTable.Title>
-              <DataTable.Title>Team</DataTable.Title>
-              <DataTable.Title>Record</DataTable.Title>
-              <DataTable.Title>GB</DataTable.Title>
-              <DataTable.Title>Win%</DataTable.Title>
-              <DataTable.Title>Streak</DataTable.Title>
-            </DataTable.Header>
             {east_visible ? (
               <FullStandings standings={standings_east}></FullStandings>
             ) : (

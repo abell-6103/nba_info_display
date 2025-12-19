@@ -13,6 +13,20 @@ export const styles = StyleSheet.create({
   text: {
     color: '#fff',
   },
+  major_text: {
+    color: '#fff',
+    fontWeight: 700,
+    fontSize: 24,
+  },
+  bold_text: {
+    color: '#fff',
+    fontWeight: 600,
+    fontSize: 16
+  },
+  minor_text: {
+    color: '#fff',
+    fontSize: 10
+  },
   button: {
     fontSize: 20,
     textDecorationLine: 'underline',
@@ -23,14 +37,30 @@ export const styles = StyleSheet.create({
     width: "100%",
     backgroundColor: '#fff',
   },
+  tableRow: {
+    flex: 1,
+    backgroundColor: '#31396d', 
+    padding: 8,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderRadius: 8,
+    margin: 4
+  },
   tableCell: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   teamLogo: {
-    width: 24,
-    height: 24,
+    width: 32,
+    height: 32,
+    backgroundColor: "#fff",
     resizeMode: 'contain',
+    marginRight: 4,
+    borderWidth: 1,
+    borderRadius: 4,
   },
   ConferencePressableContainer: {
     flex: 1,
