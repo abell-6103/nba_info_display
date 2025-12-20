@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Text, ActivityIndicator, View, ScrollView, Image, Pressable } from 'react-native';
+import { Text, ActivityIndicator, View, ScrollView, Image, Pressable, Modal } from 'react-native';
 import { styles } from '../styles';
 import { StandingsRowInfo } from '../types';
 
@@ -21,6 +21,7 @@ export default function StandingsScreen() {
   }
 
   const getStandings = async(target: string) => {
+    console.log(`Getting standings from ${target}`)
     setLoading(true);
     try {
       const response = await fetch(api_uri + `/standings/${target}`);
@@ -83,7 +84,7 @@ export default function StandingsScreen() {
       showEast(!east_visible);
     }
     return (
-      <Pressable onPress={flipConference}>
+      <Pressable onPress={flipConference} style={{flex: 3}}>
         <View style={styles.ConferencePressableContainer}>
           <View style={[styles.ConferenceTextBox, !east_visible ? styles.ViewSelected : styles.ViewUnselected]}>
             <Text style={!east_visible ? styles.TextSelected : styles.TextUnselected}>West</Text>
@@ -96,6 +97,61 @@ export default function StandingsScreen() {
     )
   }
 
+  function SeasonToggle() {
+    const [display_visible, setDisplay] = useState(false);
+    const toggleDisplay = () => setDisplay(!display_visible);
+    const season_options = process.env.EXPO_PUBLIC_SEASON_OPTIONS?.split(',');
+
+    const changeStandings = async(new_season: string) => {
+      setTargetSeason(new_season);
+      getStandings(new_season);
+    }
+
+    function handleSelect(new_season: string) {
+      toggleDisplay();
+      changeStandings(new_season);
+    }
+
+    function SeasonOption({season}: {season: string}) {
+      const onPress = () => handleSelect(season);
+      return (
+        <Pressable onPress={onPress}>
+          <View style={styles.tableRow}>
+            <View style={styles.tableCell}>
+              <Text style={styles.major_text}>{season}</Text>
+            </View>
+          </View>
+        </Pressable>
+      )
+    }
+
+    return (
+      <>
+      <Pressable onPress={toggleDisplay} style={{flex: 1}}>
+        <View style={styles.SeasonToggle}>
+          <Text>{curr_season}</Text>
+        </View>
+      </Pressable>
+      
+      <Modal
+        visible={display_visible}
+        animationType='slide'
+        onRequestClose={toggleDisplay}
+        allowSwipeDismissal={true}
+        style={styles.Modal}
+      >
+        <View style={styles.table}>
+          <ScrollView>
+            {season_options?.map((row, index) => (
+              <SeasonOption key={index} season={row}/>
+            ))}
+          </ScrollView>
+        </View>
+      </Modal>
+      </>
+    )
+  }
+
   function StandingsRow({row} : {row: StandingsRowInfo}) {
     return (
       <View style={styles.tableRow}>
@@ -105,10 +161,10 @@ export default function StandingsScreen() {
         <View style={[styles.tableCell, {flex: 4, justifyContent: 'flex-start'}]}>
           <Image source={{uri: row.img_href}} style={styles.teamLogo}/>
           {row.clinch === "" ? (
-            <Text style={styles.bold_text}>{row.name}</Text>
+            <Text style={styles.bold_text}>{row.city}</Text>
           ) : (
             <View style={{flexDirection: 'column'}}>
-              <Text style={styles.bold_text}>{row.name}</Text>
+              <Text style={styles.bold_text}>{row.city}</Text>
               <Text style={styles.minor_text}>{getClinchText(row.clinch)}</Text>
             </View>
           )}
@@ -148,18 +204,23 @@ export default function StandingsScreen() {
       {loading ? (
         <ActivityIndicator animating={true}></ActivityIndicator>
         ) : (
-        loadSuccess ? (
-          <View style={styles.table}>
+        <View style={styles.table}>
+          <View style={styles.tableHeader}>
             <ConferencePressable />
-            {east_visible ? (
-              <FullStandings standings={standings_east}></FullStandings>
-            ) : (
-              <FullStandings standings={standings_west}></FullStandings>
-            )}
+            <SeasonToggle />
           </View>
-          ) : (
-            <Text style={styles.text}>Couldn't load data :(</Text>
-        )
+          {loadSuccess ? (
+              east_visible ? (
+                <FullStandings standings={standings_east}></FullStandings>
+              ) : (
+                <FullStandings standings={standings_west}></FullStandings>
+              )
+            ) : (
+              <View style={styles.container}>
+                <Text style={styles.text}>Couldn't load data :(</Text>
+              </View>
+          )}
+        </View>
       )}
     </View>
   );

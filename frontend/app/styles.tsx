@@ -37,6 +37,12 @@ export const styles = StyleSheet.create({
     width: "100%",
     backgroundColor: '#fff',
   },
+  tableHeader: {
+    flexDirection: 'row',
+    width: '100%',
+    padding: 8,
+    columnGap: 4,
+  },
   tableRow: {
     flex: 1,
     backgroundColor: '#31396d', 
@@ -67,8 +73,8 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     borderWidth: 1,
     borderRadius: 12,
-    margin: 12,
-    overflow: 'hidden'
+    overflow: 'hidden',
+    alignItems: 'center'
   },
   ConferenceTextBox: {
     flex: 1,
@@ -87,5 +93,20 @@ export const styles = StyleSheet.create({
   },
   TextUnselected: {
     color: '#000',
+  },
+  SeasonToggle: {
+    flex: 1,
+    flexDirection: 'row',
+    borderRadius: 12,
+    padding: 4,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    justifyContent: 'space-evenly',
+    backgroundColor: '#e0e0e0'
+  },
+  Modal: {
+    margin: 15,
+    alignItems: undefined,
+    justifyContent: undefined
   }
 });
