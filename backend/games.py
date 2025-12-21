@@ -35,8 +35,11 @@ class Games(GameInterface):
     if (delay > 0):
       sleep(delay)
 
-    day_str = day.strftime('%m/%d/%Y')
-    found_games = scoreboardv3.ScoreboardV3(game_date=day_str)
+    try:
+      day_str = day.strftime('%m/%d/%Y')
+      found_games = scoreboardv3.ScoreboardV3(game_date=day_str)
+    except:
+      return None
 
     headers = found_games.game_header.get_data_frame()
     linescores = found_games.line_score.get_data_frame()
