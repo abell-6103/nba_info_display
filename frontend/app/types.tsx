@@ -13,6 +13,22 @@ type StandingsRowInfo = {
   img_href: string;
 }
 
+type TeamGameInfo = {
+  team_id: number;
+  city: string;
+  score: number;
+  logo: string;
+}
+
+type GameInfo = {
+  game_id: number;
+  status: string;
+  home_team: TeamGameInfo;
+  away_team: TeamGameInfo;
+}
+
 export {
-    StandingsRowInfo
+  StandingsRowInfo,
+  TeamGameInfo,
+  GameInfo
 }
