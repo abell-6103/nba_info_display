@@ -39,7 +39,7 @@ async def returnStandings(season_id: str):
 @app.get("/games/{game_day}")
 async def returnGames(game_day: str):
     try:
-        date_obj = datetime.strptime(game_day, "%m/%d/%Y").date()
+        date_obj = datetime.strptime(game_day, "%Y-%m-%d").date()
     except ValueError:
         raise HTTPException(status_code=400, detail=f"Could not resolve date {game_day}.")
     res = games.getGamesFromDay(date_obj)

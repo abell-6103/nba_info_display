@@ -52,7 +52,7 @@ class GameObj:
     return f'{self.period - 4}OT'
 
   def getStatusStr(self):
-    if self.status != 2:
+    if self.status != 2 or self.clock == "":
       return self.status_text.strip()
     return f"{self.getPeriodStr()} {self.clock}"
 
