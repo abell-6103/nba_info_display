@@ -39,7 +39,6 @@ export const styles = StyleSheet.create({
   },
   tableHeader: {
     flexDirection: 'row',
-    width: '100%',
     padding: 8,
     columnGap: 4,
   },
@@ -64,7 +63,7 @@ export const styles = StyleSheet.create({
     height: 32,
     backgroundColor: "#fff",
     resizeMode: 'contain',
-    marginRight: 4,
+    marginHorizontal: 4,
     borderWidth: 1,
     borderRadius: 4,
   },

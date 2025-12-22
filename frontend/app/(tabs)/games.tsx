@@ -1,17 +1,22 @@
 import { useEffect, useState } from 'react'
-import { View, Text} from 'react-native';
+import { View, Text, ActivityIndicator, ScrollView, Image, Pressable } from 'react-native';
 import { styles } from '../styles';
 import { TeamGameInfo, GameInfo } from '../types';
+import moment from 'moment';
 
 export default function Games() {
   const api_uri = process.env.EXPO_PUBLIC_API_URI;
 
-  const [loading, setLoading] = useState(true);
-  const [loadSuccess, setLoadSuccess] = useState(false);
+  const today = new Date();
+  const today_string = moment(today).format("YYYY-MM-DD");
+
+  const [games_loading, setGamesLoading] = useState(true);
+  const [games_loadSuccess, setGamesLoadSuccess] = useState(false);
   const [games, setGames] = useState<GameInfo[]>([]);
+  const [target_day, setTargetDay] = useState(today_string);
 
   const getGames = async(target_day: string) => {
-    setLoading(true);
+    setGamesLoading(true);
     try {
       const response = await fetch(api_uri + `/games/${target_day}`);
       if (response.ok) {
@@ -19,18 +24,76 @@ export default function Games() {
         setGames(json);
       } else {
         console.error(`Couldn't load games from ${target_day}`)
-        setLoadSuccess(false);
+        setGamesLoadSuccess(false);
       }
     } catch (error) {
       console.error(error);
-      setLoadSuccess(false);
+      setGamesLoadSuccess(false);
     }
-    setLoading(false);
+    setGamesLoading(false);
+  }
+
+  useEffect(() => {
+    getGames(target_day);
+  }, []);
+
+  function openGameModal(game_id: number) {
+    console.log(game_id)
+  }
+
+  function GameEntry({game}: {game: GameInfo}) {
+    const handlePress = () => {
+      openGameModal(game.game_id);
+    };
+
+    return (
+      <Pressable onPress={handlePress}>
+        <View style={[styles.tableRow, {justifyContent: 'space-evenly'}]}>
+          <View style={[styles.tableCell, {justifyContent: 'flex-start'}]}>
+            <Image source={{uri: game.away_team.logo}} style={styles.teamLogo}/>
+            <Text style={styles.bold_text}>{game.away_team.city}</Text>
+          </View>
+          <View style={[styles.tableCell, {flexDirection: 'column'}]}>
+            <Text style={styles.bold_text}>{game.away_team.score} - {game.home_team.score}</Text>
+            <Text style={styles.minor_text}>{game.status}</Text>
+          </View>
+          <View style={[styles.tableCell, {justifyContent: 'flex-end'}]}>
+            <Text style={styles.bold_text}>{game.home_team.city}</Text>
+            <Image source={{uri: game.home_team.logo}} style={styles.teamLogo}/>
+          </View>
+        </View>
+      </Pressable>
+    );
+  }
+
+  function GamesTable() {
+    return (
+        <ScrollView>{
+          games?.map((row, index) => (
+            <GameEntry key={index} game={row}/>
+          ))
+        }</ScrollView>
+    );
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Games</Text>
+      {games_loading ? (
+        <ActivityIndicator animating={true}></ActivityIndicator>
+      ) : (
+        <View style={styles.table}>
+          <View style={styles.tableHeader}>
+            <Text>Sample Header</Text>
+          </View>
+          {games?.length > 0 ? (
+            <GamesTable />
+          ) : (
+            <View style={styles.container}>
+              <Text style={styles.text}>Couldn't find games :(</Text>
+            </View>
+          )} 
+        </View>
+      )}
     </View>
   );
 }
