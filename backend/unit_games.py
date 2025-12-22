@@ -82,4 +82,4 @@ class TestGames(unittest.TestCase):
     self.assertEquals(requests.get(away_team['logo']).status_code, 200)
 
 if __name__ == '__main__':
-    unittest.main()
+  unittest.main()
