@@ -21,6 +21,12 @@ class Boxscores(BoxscoreInterface):
 
     self.wait_time = 30
 
+  def _validateId(self, game_id: str):
+    if not isinstance(game_id, str):
+      raise TypeError("game_id must be of type str")
+    if len(game_id) != 10 or not game_id.isnumeric():
+      raise ValueError("game_id must be numeric and have length 10")
+
   def _getTeamStatsDf(self, res: boxscoretraditionalv3.BoxScoreTraditionalV3) -> pd.DataFrame:
     team_stats_df = res.team_stats.get_data_frame()[["teamId", 'teamCity', 'fieldGoalsMade',
                                                      'fieldGoalsAttempted', 'threePointersMade',
@@ -42,22 +48,13 @@ class Boxscores(BoxscoreInterface):
 
     return team_stats_df
 
-  def getBoxscore(self, game_id: str) -> dict:
-    if game_id in self.boxscores.keys() and (monotonic() - self.last_access[game_id]) <= self.wait_time:
-      return self.boxscores[game_id]
-
-    if not isinstance(game_id, str):
-      raise TypeError("game_id must be of type str")
-    
-    if len(game_id) != 10 or not game_id.isnumeric():
-      raise ValueError("game_id must be numeric and have length 10")
-
+  def _getApiRes(self, game_id: str):
     score_exists = True
     try:
       # Game exists and so does its box score
       res = boxscoretraditionalv3.BoxScoreTraditionalV3(game_id=game_id)
       if len(res.player_stats.get_dict()['data']) == 0:
-        return None
+        return None, None
     except:
       score_exists = False
       try:
@@ -65,7 +62,32 @@ class Boxscores(BoxscoreInterface):
         res = boxscoresummaryv3.BoxScoreSummaryV3(game_id=game_id)
       except:
         # Neither the game nor the box score exists
-        return None
+        return None, None
+    return res, score_exists
+
+  def _getTeamStatsDict(self, row: pd.Series):
+    stats = {}
+    _statList = ['fgm', 'fga', 'fg3m', 'fg3a', 'ftm', 'fta', 'oreb', 'dreb',
+                 'ast', 'blk', 'stl', 'pts', 'pf']
+    for stat in _statList:
+      stats[stat] = row.loc[stat]
+
+    # extra implied stats
+    stats['reb'] = stats['oreb'] + stats['dreb']
+    stats['fg_pct'] = stats['fgm'] / stats['fga']
+    stats['fg3_pct'] = stats['fg3m'] / stats['fg3a']
+    stats['ft_pct'] = stats['ftm'] / stats['fta']
+
+    return stats
+
+  def getBoxscore(self, game_id: str) -> dict:
+    if game_id in self.boxscores.keys() and (monotonic() - self.last_access[game_id]) <= self.wait_time:
+      return self.boxscores[game_id]
+
+    self._validateId(game_id)
+    res, score_exists = self._getApiRes(game_id)
+    if score_exists is None:
+      return None
     self.last_access[game_id] = monotonic()
 
     score = {
@@ -91,6 +113,7 @@ class Boxscores(BoxscoreInterface):
         team = score[f"team_{i}"]
         team["team_id"] = row.loc['team_id']
         team["team_city"] = row.loc['team_city']
+        team["team_stats"] = self._getTeamStatsDict(row)
         i += 1
 
     else:
