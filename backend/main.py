@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from callQueue import CallQueue
 from standings import Standings
 from games import Games
+from boxscores import Boxscores
 
 load_dotenv("../.env")
 ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS").split(",")
@@ -21,6 +22,7 @@ app = FastAPI()
 call_queue = CallQueue(call_delay)
 standings = Standings(call_queue)
 games = Games(call_queue)
+boxscores = Boxscores(call_queue)
 
 app.add_middleware(
     CORSMiddleware,
@@ -45,4 +47,14 @@ async def returnGames(game_day: str):
     res = games.getGamesFromDay(date_obj)
     if res is None:
         raise HTTPException(status_code=404, detail=f"Could not find games on {game_day}.")
+    return res
+
+@app.get("/boxscore/{game_id}")
+async def returnBoxscore(game_id: str):
+    try:
+        res = boxscores.getBoxscore(game_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="game_id must be 10 numeric digits.")
+    if res is None:
+        raise HTTPException(status_code=404, detail=f"Could not find game with id {game_id}.")
     return res

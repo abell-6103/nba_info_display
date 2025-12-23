@@ -10,7 +10,7 @@ class BoxscoreInterface(ABC):
   def __init__(self, call_queue: CallQueue):
     pass
 
-  def getBoxscore(self, game_id: str):
+  def getBoxscore(self, game_id: str) -> dict:
     pass
 
 class Boxscores(BoxscoreInterface):
