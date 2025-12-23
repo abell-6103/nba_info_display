@@ -38,9 +38,11 @@ class StatObj:
     return newObj
 
 class BoxscoreInterface(ABC):
+  @abstractmethod
   def __init__(self, call_queue: CallQueue):
     pass
 
+  @abstractmethod
   def getBoxscore(self, game_id: str) -> dict:
     pass
 
@@ -86,21 +88,22 @@ class Boxscores(BoxscoreInterface):
     return team_info_df
 
   def _getApiRes(self, game_id: str):
+    try:
+      summary = boxscoresummaryv3.BoxScoreSummaryV3(game_id=game_id)
+    except:
+      # If summary doesn't exist, neither does the game
+      return None, None, None
+    
     score_exists = True
     try:
       # Game exists and so does its box score
-      res = boxscoretraditionalv3.BoxScoreTraditionalV3(game_id=game_id)
-      if len(res.player_stats.get_dict()['data']) == 0:
-        return None, None
+      boxscore = boxscoretraditionalv3.BoxScoreTraditionalV3(game_id=game_id)
+      if len(boxscore.player_stats.get_dict()['data']) == 0:
+        return None, None, None
     except:
+      boxscore = None
       score_exists = False
-      try:
-        # Game exists but its box score does not
-        res = boxscoresummaryv3.BoxScoreSummaryV3(game_id=game_id)
-      except:
-        # Neither the game nor the box score exists
-        return None, None
-    return res, score_exists
+    return boxscore, summary, score_exists
 
   def _getStatsDict(self, row: pd.Series):
     stats = StatObj.loadFromSeries(row).getValues()
@@ -111,7 +114,7 @@ class Boxscores(BoxscoreInterface):
       return self.boxscores[game_id]
 
     self._validateId(game_id)
-    res, score_exists = self._getApiRes(game_id)
+    boxscore, summary, score_exists = self._getApiRes(game_id)
     if score_exists is None:
       return None
     self.last_access[game_id] = monotonic()
@@ -119,11 +122,12 @@ class Boxscores(BoxscoreInterface):
     score = {
       "team_0": {},
       "team_1": {},
-      "score_exists": score_exists
+      "score_exists": score_exists,
+      "status": summary.game_summary.get_data_frame().iloc[0].loc['gameStatusText']
     }
 
     if score_exists:
-      team_stats_df = self._getTeamStatsDf(res)
+      team_stats_df = self._getTeamStatsDf(boxscore)
 
       sample_team = {
         "team_id" : None,
@@ -145,14 +149,12 @@ class Boxscores(BoxscoreInterface):
         i += 1
 
     else:
-      score["status"] = res.game_summary.get_data_frame().iloc[0].loc['gameStatusText']
-
-      team_info_df = self._getTeamInfoDf(res)
+      team_info_df = self._getTeamInfoDf(summary)
 
       sample_team = {
         "team_id" : None,
         "team_city" : None,
-        "inactive_players" : {}
+        "team_logo" : None
       }
       score["team_0"] = sample_team.copy()
       score["team_1"] = sample_team.copy()
@@ -162,6 +164,7 @@ class Boxscores(BoxscoreInterface):
         team = score[f"team_{i}"]
         team["team_id"] = row.loc["team_id"]
         team["team_city"] = row.loc["team_city"]
+        team["team_logo"] = f"https://cdn.nba.com/logos/nba/{team['team_id']}/primary/L/logo.svg"
         i += 1
 
     self.boxscores[game_id] = score

@@ -40,12 +40,14 @@ class TestBoxscores(unittest.TestCase):
     self.assertIsNotNone(res['team_0'])
     self.assertIsNotNone(res['team_1'])
     self.assertIsNotNone(res['score_exists'])
+    self.assertIsNotNone(res['status'])
 
-  def test_getboxscores_attributesaredicts(self):
+  def test_getboxscores_attributesaregoodtype(self):
     res = self.boxscores.getBoxscore(self.valid_id)
     self.assertTrue(isinstance(res['team_0'], dict))
     self.assertTrue(isinstance(res['team_1'], dict))
     self.assertTrue(isinstance(res['score_exists'], bool))
+    self.assertTrue(isinstance(res['status'], str))
   
   def test_getboxscore_goodidscoreexists(self):
     self.assertTrue(self.boxscores.getBoxscore(self.valid_id)['score_exists'])
@@ -59,12 +61,67 @@ class TestBoxscores(unittest.TestCase):
     self.assertIsNotNone(res['team_0']['team_id'])
     self.assertIsNotNone(res['team_0']['team_city'])
     self.assertIsNotNone(res['team_0']['team_stats'])
+    self.assertIsNotNone(res['team_0']['team_logo'])
     self.assertIsNotNone(res['team_0']['player_stats'])
 
     self.assertIsNotNone(res['team_1']['team_id'])
     self.assertIsNotNone(res['team_1']['team_city'])
     self.assertIsNotNone(res['team_1']['team_stats'])
+    self.assertIsNotNone(res['team_1']['team_logo'])
     self.assertIsNotNone(res['team_1']['player_stats'])
+
+  def test_getboxscore_goodidteamattributesaregoodtype(self):
+    res = self.boxscores.getBoxscore(self.valid_id)
+
+    self.assertTrue(isinstance(res['team_0']['team_id'], int))
+    self.assertTrue(isinstance(res['team_0']['team_city'], str))
+    self.assertTrue(isinstance(res['team_0']['team_stats'], dict))
+    self.assertTrue(isinstance(res['team_0']['team_logo'], str))
+    self.assertTrue(isinstance(res['team_0']['player_stats'], dict))
+
+    self.assertTrue(isinstance(res['team_1']['team_id'], int))
+    self.assertTrue(isinstance(res['team_1']['team_city'], str))
+    self.assertTrue(isinstance(res['team_1']['team_stats'], dict))
+    self.assertTrue(isinstance(res['team_1']['team_logo'], str))
+    self.assertTrue(isinstance(res['team_1']['player_stats'], dict))
+
+  def test_getboxscore_futureidattributesexist(self):
+    res = self.boxscores.getBoxscore(self.future_id)
+
+    self.assertIsNotNone(res['team_0'])
+    self.assertIsNotNone(res['team_1'])
+    self.assertIsNotNone(res['score_exists'])
+    self.assertIsNotNone(res['status'])
+
+  def test_getboxscore_futureidattributesaregood(self):
+    res = self.boxscores.getBoxscore(self.future_id)
+
+    self.assertTrue(isinstance(res['team_0'], dict))
+    self.assertTrue(isinstance(res['team_1'], dict))
+    self.assertTrue(isinstance(res['score_exists'], bool))
+    self.assertTrue(isinstance(res['status'], str))
+
+  def test_getboxscore_futureidteamattributesexist(self):
+    res = self.boxscores.getBoxscore(self.future_id)
+
+    self.assertIsNotNone(res['team_0']['team_id'])
+    self.assertIsNotNone(res['team_0']['team_city'])
+    self.assertIsNotNone(res['team_0']['team_logo'])
+
+    self.assertIsNotNone(res['team_1']['team_id'])
+    self.assertIsNotNone(res['team_1']['team_city'])
+    self.assertIsNotNone(res['team_1']['team_logo'])
+
+  def test_getboxscore_futureidteamattributesaregoodtype(self):
+    res = self.boxscores.getBoxscore(self.future_id)
+
+    self.assertTrue(isinstance(res['team_0']['team_id'], int))
+    self.assertTrue(isinstance(res['team_0']['team_city'], str))
+    self.assertTrue(isinstance(res['team_0']['team_logo'], str))
+
+    self.assertTrue(isinstance(res['team_1']['team_id'], int))
+    self.assertTrue(isinstance(res['team_1']['team_city'], str))
+    self.assertTrue(isinstance(res['team_1']['team_logo'], str))
 
 if __name__ == "__main__":
   unittest.main()
