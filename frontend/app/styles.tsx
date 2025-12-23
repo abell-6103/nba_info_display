@@ -1,7 +1,5 @@
 import { Dimensions, StatusBar, StyleSheet } from "react-native";
 
-const { width } = Dimensions.get('window');
-
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -35,12 +33,16 @@ export const styles = StyleSheet.create({
   table: {
     flex: 1,
     width: "100%",
-    backgroundColor: '#fff',
+    backgroundColor: '#e0e0e0'
+    
   },
   tableHeader: {
     flexDirection: 'row',
     padding: 8,
     columnGap: 4,
+    height: 40,
+    alignItems: 'center',
+    backgroundColor: '#fff',
   },
   tableRow: {
     flex: 1,
