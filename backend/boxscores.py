@@ -6,6 +6,37 @@ import pandas as pd
 
 from callQueue import CallQueue
 
+class StatObj:
+  def __init__(self):
+    self.values = {}
+    self._statList = ['fgm', 'fga', 'fg3m', 'fg3a', 'ftm', 'fta', 'oreb', 'dreb',
+                      'ast', 'blk', 'stl', 'pts', 'pf', 'min']
+    for stat in self._statList:
+      self.values[stat] = None
+
+  def getValues(self) -> dict:
+    # work on a copy so the returned value doesnt affect the source
+    copy = self.values.copy()
+
+    # extra stats
+    copy['reb'] = copy['oreb'] + copy['dreb']
+    copy['fg_pct'] = copy['fgm'] / copy['fga']
+    copy['fg3_pct'] = copy['fg3m'] / copy['fg3a']
+    copy['ft_pct'] = copy['ftm'] / copy['fta']
+    copy['efg_pct'] = ( copy['fgm'] + 0.5 * copy['fg3m'] ) / copy['fga']
+
+    return copy
+  
+  @staticmethod
+  def loadFromSeries(source: pd.Series) -> "StatObj":
+    newObj = StatObj()
+    for stat in newObj._statList:
+      try:
+        newObj.values[stat] = source.loc[stat]
+      except KeyError:
+        newObj.values[stat] = 0
+    return newObj
+
 class BoxscoreInterface(ABC):
   def __init__(self, call_queue: CallQueue):
     pass
@@ -47,6 +78,12 @@ class Boxscores(BoxscoreInterface):
                                                   "tov", "points": "pts", "foulsPersonal": "pf"})
 
     return team_stats_df
+  
+  def _getTeamInfoDf(self, res: boxscoresummaryv3.BoxScoreSummaryV3) -> pd.DataFrame:
+    team_info_df = res.other_stats.get_data_frame()[["teamId", "teamCity"]]
+    team_info_df = team_info_df.rename(columns={"teamId": "team_id", "teamCity": "team_city"})
+
+    return team_info_df
 
   def _getApiRes(self, game_id: str):
     score_exists = True
@@ -65,19 +102,8 @@ class Boxscores(BoxscoreInterface):
         return None, None
     return res, score_exists
 
-  def _getTeamStatsDict(self, row: pd.Series):
-    stats = {}
-    _statList = ['fgm', 'fga', 'fg3m', 'fg3a', 'ftm', 'fta', 'oreb', 'dreb',
-                 'ast', 'blk', 'stl', 'pts', 'pf']
-    for stat in _statList:
-      stats[stat] = row.loc[stat]
-
-    # extra implied stats
-    stats['reb'] = stats['oreb'] + stats['dreb']
-    stats['fg_pct'] = stats['fgm'] / stats['fga']
-    stats['fg3_pct'] = stats['fg3m'] / stats['fg3a']
-    stats['ft_pct'] = stats['ftm'] / stats['fta']
-
+  def _getStatsDict(self, row: pd.Series):
+    stats = StatObj.loadFromSeries(row).getValues()
     return stats
 
   def getBoxscore(self, game_id: str) -> dict:
@@ -102,6 +128,7 @@ class Boxscores(BoxscoreInterface):
       sample_team = {
         "team_id" : None,
         "team_city" : None,
+        "team_logo" : None,
         "team_stats" : {},
         "player_stats" : {}
       }
@@ -113,11 +140,29 @@ class Boxscores(BoxscoreInterface):
         team = score[f"team_{i}"]
         team["team_id"] = row.loc['team_id']
         team["team_city"] = row.loc['team_city']
-        team["team_stats"] = self._getTeamStatsDict(row)
+        team["team_logo"] = f"https://cdn.nba.com/logos/nba/{team['team_id']}/primary/L/logo.svg"
+        team["team_stats"] = self._getStatsDict(row)
         i += 1
 
     else:
-      pass
+      score["status"] = res.game_summary.get_data_frame().iloc[0].loc['gameStatusText']
+
+      team_info_df = self._getTeamInfoDf(res)
+
+      sample_team = {
+        "team_id" : None,
+        "team_city" : None,
+        "inactive_players" : {}
+      }
+      score["team_0"] = sample_team.copy()
+      score["team_1"] = sample_team.copy()
+
+      i = 0
+      for _, row in team_info_df.iterrows():
+        team = score[f"team_{i}"]
+        team["team_id"] = row.loc["team_id"]
+        team["team_city"] = row.loc["team_city"]
+        i += 1
 
     self.boxscores[game_id] = score
     return score
