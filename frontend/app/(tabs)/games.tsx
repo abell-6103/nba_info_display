@@ -37,6 +37,16 @@ export default function Games() {
     getGames(target_day);
   }, []);
 
+  function DatePressable() {
+    return (
+      <Pressable style={{flex: 1}}>
+        <View style={styles.SeasonToggle}>
+          <Text>{target_day}</Text>
+        </View>
+      </Pressable>
+    );
+  }
+
   function openGameModal(game_id: number) {
     console.log(game_id)
   }
@@ -82,8 +92,8 @@ export default function Games() {
         <ActivityIndicator animating={true}></ActivityIndicator>
       ) : (
         <View style={styles.table}>
-          <View style={styles.tableHeader}>
-            <Text>Sample Header</Text>
+          <View style={[styles.tableHeader, {alignContent: 'center'}]}>
+            <DatePressable />
           </View>
           {games?.length > 0 ? (
             <GamesTable />
