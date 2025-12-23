@@ -83,16 +83,20 @@ export default function Games() {
     return (
       <Pressable onPress={handlePress}>
         <View style={[styles.tableRow, {justifyContent: 'space-evenly'}]}>
-          <View style={[styles.tableCell, {justifyContent: 'flex-start'}]}>
+          <View style={[styles.tableCell]}>
             <Image source={{uri: game.away_team.logo}} style={styles.teamLogo}/>
-            <Text style={styles.bold_text}>{game.away_team.city}</Text>
+          </View>
+          <View style={[styles.tableCell, {flex: 2}]}>
+            <Text style={[styles.bold_text, {textAlign:'center'}]}>{game.away_team.city}</Text>
           </View>
           <View style={[styles.tableCell, {flexDirection: 'column'}]}>
             <Text style={styles.bold_text}>{game.away_team.score} - {game.home_team.score}</Text>
             <Text style={styles.minor_text}>{game.status}</Text>
           </View>
-          <View style={[styles.tableCell, {justifyContent: 'flex-end'}]}>
-            <Text style={styles.bold_text}>{game.home_team.city}</Text>
+          <View style={[styles.tableCell, {flex: 2}]}>
+            <Text style={[styles.bold_text, {textAlign:'center'}]}>{game.home_team.city}</Text>
+          </View>
+          <View style={[styles.tableCell]}>
             <Image source={{uri: game.home_team.logo}} style={styles.teamLogo}/>
           </View>
         </View>

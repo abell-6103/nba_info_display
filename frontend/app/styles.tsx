@@ -43,6 +43,8 @@ export const styles = StyleSheet.create({
     height: 40,
     alignItems: 'center',
     backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderColor: "#000"
   },
   tableRow: {
     flex: 1,
