@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { View, Text, ActivityIndicator, ScrollView, Image, Pressable } from 'react-native';
 import { styles } from '../styles';
-import { TeamGameInfo, GameInfo } from '../types';
+import { TeamGameInfo, GameInfo, BoxscoreInfo } from '../types';
 import moment from 'moment';
 
 export default function Games() {
@@ -14,6 +14,11 @@ export default function Games() {
   const [games_loadSuccess, setGamesLoadSuccess] = useState(false);
   const [games, setGames] = useState<GameInfo[]>([]);
   const [target_day, setTargetDay] = useState(today_string);
+
+  const [boxscore_loading, setBoxscoreLoading] = useState(true);
+  const [boxscore_loadSuccess, setBoxscoreLoadSuccess] = useState(false);
+  const [boxscore, setBoxscore] = useState<BoxscoreInfo[]>([]);
+  const [target_game, setTargetGame] = useState("0000000000");
 
   const getGames = async(target_day: string) => {
     setGamesLoading(true);
@@ -33,8 +38,27 @@ export default function Games() {
     setGamesLoading(false);
   }
 
+  const getBoxscore = async(target_game: string) => {
+    setBoxscoreLoading(true);
+    try {
+      const response = await fetch(api_uri + `/boxscore/${target_game}`);
+      if (response.ok) {
+        const json = await response.json();
+        setBoxscore(json);
+      } else {
+        console.error(`Couldn't load boxscore with id ${target_game}.`)
+        setBoxscoreLoadSuccess(false);
+      }
+    } catch (error) {
+      console.error(error);
+      setBoxscoreLoadSuccess(false);
+    }
+    setBoxscoreLoading(false);
+  }
+
   useEffect(() => {
     getGames(target_day);
+    getBoxscore("0022500397");
   }, []);
 
   function DatePressable() {

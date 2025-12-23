@@ -27,8 +27,46 @@ type GameInfo = {
   away_team: TeamGameInfo;
 }
 
+type StatInfo = {
+  fga: number;
+  fgm: number;
+  fg_pct: number;
+  fg3a: number;
+  fg3m: number;
+  fg3_pct: number;
+  fta: number;
+  ftm: number;
+  ft_pct: number;
+  oreb: number;
+  dreb: number;
+  reb: number;
+  ast: number;
+  blk: number;
+  stl: number;
+  pts: number;
+  pf: number;
+}
+
+type PlayerBoxscoreInfo = {
+
+}
+
+type TeamBoxscoreInfo = {
+  team_id: number;
+  team_city: string;
+  team_stats: StatInfo;
+  player_stats: PlayerBoxscoreInfo[];
+}
+
+type BoxscoreInfo = {
+  team_0: TeamBoxscoreInfo;
+  team_1: TeamBoxscoreInfo;
+  score_exists: boolean;
+}
+
 export {
   StandingsRowInfo,
   TeamGameInfo,
-  GameInfo
+  GameInfo,
+  BoxscoreInfo
 }
