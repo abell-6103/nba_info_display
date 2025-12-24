@@ -129,6 +129,7 @@ class TestBoxscores(unittest.TestCase):
     self.assertIsNotNone(res['player_name'])
     self.assertIsNotNone(res['player_id'])
     self.assertIsNotNone(res['position'])
+    self.assertIsNotNone(res['started'])
     self.assertIsNotNone(res['stats'])
 
   def test_boxscore_goodidplayerstatsattributesaregood(self):
@@ -136,7 +137,8 @@ class TestBoxscores(unittest.TestCase):
 
     self.assertTrue(isinstance(res['player_name'], str))
     self.assertTrue(isinstance(res['player_id'], int))
-    self.assertTrue(isinstance(res['player_name'], str))
+    self.assertTrue(isinstance(res['position'], str))
+    self.assertTrue(isinstance(res['started'], bool))
     self.assertTrue(isinstance(res['stats'], dict))
 
 if __name__ == "__main__":

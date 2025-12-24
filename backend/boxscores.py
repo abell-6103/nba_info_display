@@ -196,6 +196,7 @@ class Boxscores(BoxscoreInterface):
         player["player_name"] = row.loc["player_name"]
         player["player_id"] = row.loc["player_id"]
         player["position"] = row.loc["position"]
+        player["started"] = player["position"] != ""
         #player["jersey"] = row.loc["jersey"]
         player["stats"] = self._getStatsDict(row)
 
