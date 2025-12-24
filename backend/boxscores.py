@@ -47,7 +47,7 @@ class BoxscoreInterface(ABC):
     pass
 
 class Boxscores(BoxscoreInterface):
-  def __init__(self, call_queue):
+  def __init__(self, call_queue: CallQueue):
     self.boxscores = {}
     self.last_access = {}
     self.call_queue = call_queue
@@ -119,7 +119,14 @@ class Boxscores(BoxscoreInterface):
 
     return team_info_df
 
+  def _waitForCall(self) -> None:
+    c = self.call_queue.addCall()
+    delay = c.ready_time - monotonic()
+    if delay > 0:
+      sleep(delay)
+
   def _getApiRes(self, game_id: str):
+    self._waitForCall()
     try:
       summary = boxscoresummaryv3.BoxScoreSummaryV3(game_id=game_id)
     except:
@@ -127,6 +134,7 @@ class Boxscores(BoxscoreInterface):
       return None, None, None
     
     score_exists = True
+    self._waitForCall()
     try:
       # Game exists and so does its box score
       boxscore = boxscoretraditionalv3.BoxScoreTraditionalV3(game_id=game_id)
