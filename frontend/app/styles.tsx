@@ -111,5 +111,13 @@ export const styles = StyleSheet.create({
     margin: 15,
     alignItems: undefined,
     justifyContent: undefined
+  },
+  TextInput: {
+    flex: 4,
+    flexDirection: 'row',
+    padding: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    textAlign: 'center',
   }
 });

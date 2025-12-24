@@ -28,6 +28,7 @@ type GameInfo = {
 }
 
 type StatInfo = {
+  min: number;
   fga: number;
   fgm: number;
   fg_pct: number;
@@ -51,6 +52,13 @@ type PlayerBoxscoreInfo = {
 
 }
 
+type PlayerSearchInfo = {
+  player_id: number;
+  player_name: string;
+  player_headshot: string;
+  active: boolean;
+}
+
 type TeamBoxscoreInfo = {
   team_id: number;
   team_city: string;
@@ -68,5 +76,6 @@ export {
   StandingsRowInfo,
   TeamGameInfo,
   GameInfo,
+  PlayerSearchInfo,
   BoxscoreInfo
 }
