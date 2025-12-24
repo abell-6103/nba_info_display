@@ -20,10 +20,10 @@ class StatObj:
 
     # extra stats
     copy['reb'] = copy['oreb'] + copy['dreb']
-    copy['fg_pct'] = copy['fgm'] / copy['fga']
-    copy['fg3_pct'] = copy['fg3m'] / copy['fg3a']
-    copy['ft_pct'] = copy['ftm'] / copy['fta']
-    copy['efg_pct'] = ( copy['fgm'] + 0.5 * copy['fg3m'] ) / copy['fga']
+    copy['fg_pct'] = 0 if copy['fga'] == 0 else copy['fgm'] / copy['fga']
+    copy['fg3_pct'] = 0 if copy['fg3a'] == 0 else copy['fg3m'] / copy['fg3a']
+    copy['ft_pct'] = 0 if copy['fta'] == 0 else copy['ftm'] / copy['fta']
+    copy['efg_pct'] = 0 if copy['fga'] == 0 else ( copy['fgm'] + 0.5 * copy['fg3m'] ) / copy['fga']
 
     return copy
   
@@ -61,17 +61,18 @@ class Boxscores(BoxscoreInterface):
       raise ValueError("game_id must be numeric and have length 10")
 
   def _getTeamStatsDf(self, res: boxscoretraditionalv3.BoxScoreTraditionalV3) -> pd.DataFrame:
-    team_stats_df = res.team_stats.get_data_frame()[["teamId", 'teamCity', 'fieldGoalsMade',
-                                                     'fieldGoalsAttempted', 'threePointersMade',
-                                                     'threePointersAttempted', 'freeThrowsMade',
-                                                     'freeThrowsAttempted', 'reboundsOffensive',
-                                                     'reboundsDefensive', 'assists', 'steals',
-                                                     'blocks', 'turnovers', 'points',
-                                                     'foulsPersonal']]
+    team_stats_df = res.team_stats.get_data_frame()[["teamId", 'teamCity', 'minutes',
+                                                     'fieldGoalsMade', 'fieldGoalsAttempted',
+                                                     'threePointersMade', 'threePointersAttempted',
+                                                     'freeThrowsMade', 'freeThrowsAttempted',
+                                                     'reboundsOffensive', 'reboundsDefensive',
+                                                     'assists', 'steals', 'blocks', 'turnovers',
+                                                     'points', 'foulsPersonal']]
     
     team_stats_df = team_stats_df.rename(columns={"teamId": "team_id", "teamCity": "team_city",
-                                                  "fieldGoalsMade": "fgm", "fieldGoalsAttempted":
-                                                  "fga", "threePointersMade": "fg3m",
+                                                  "minutes": "min", "fieldGoalsMade": "fgm",
+                                                  "fieldGoalsAttempted": "fga",
+                                                  "threePointersMade": "fg3m",
                                                   "threePointersAttempted": "fg3a",
                                                   "freeThrowsMade": "ftm", "freeThrowsAttempted":
                                                   "fta", "reboundsOffensive": "oreb",
@@ -81,6 +82,37 @@ class Boxscores(BoxscoreInterface):
 
     return team_stats_df
   
+  def _getPlayerStatsDf(self, boxscore: boxscoretraditionalv3.BoxScoreTraditionalV3) -> pd.DataFrame:
+    player_stats_df = boxscore.player_stats.get_data_frame()[["teamId", "personId", "nameI",
+                                                              "position", "jerseyNum", "minutes",
+                                                              "fieldGoalsMade",
+                                                              "fieldGoalsAttempted",
+                                                              "threePointersMade",
+                                                              "threePointersAttempted",
+                                                              "freeThrowsMade",
+                                                              "freeThrowsAttempted",
+                                                              "reboundsOffensive",
+                                                              "reboundsDefensive",
+                                                              "assists", "steals", "blocks",
+                                                              "turnovers", "points",
+                                                              "foulsPersonal"]]
+    
+    player_stats_df = player_stats_df.rename(columns={"teamId": "team_id", "personId": "player_id",
+                                                      "nameI": "player_name", "jerseyNum":
+                                                      "jersey", "minutes": "min", "fieldGoalsMade":
+                                                      "fgm", "fieldGoalsAttempted": "fga",
+                                                      "threePointersMade": "fg3m",
+                                                      "threePointersAttempted": "fg3a",
+                                                      "freeThrowsMade": "ftm",
+                                                      "freeThrowsAttempted": "fta",
+                                                      "reboundsOffensive": "oreb",
+                                                      "reboundsDefensive": "dreb", "assists":
+                                                      "ast", "steals": "stl", "blocks": "blk",
+                                                      "turnovers": "tov", "points": "pts",
+                                                      "foulsPersonal": "pf"})
+
+    return player_stats_df
+
   def _getTeamInfoDf(self, res: boxscoresummaryv3.BoxScoreSummaryV3) -> pd.DataFrame:
     team_info_df = res.other_stats.get_data_frame()[["teamId", "teamCity"]]
     team_info_df = team_info_df.rename(columns={"teamId": "team_id", "teamCity": "team_city"})
@@ -134,10 +166,12 @@ class Boxscores(BoxscoreInterface):
         "team_city" : None,
         "team_logo" : None,
         "team_stats" : {},
-        "player_stats" : {}
       }
       score["team_0"] = sample_team.copy()
       score["team_1"] = sample_team.copy()
+
+      score["team_0"]["player_stats"] = []
+      score["team_1"]["player_stats"] = []
 
       i = 0
       for _, row in team_stats_df.iterrows():
@@ -147,6 +181,20 @@ class Boxscores(BoxscoreInterface):
         team["team_logo"] = f"https://cdn.nba.com/logos/nba/{team['team_id']}/primary/L/logo.svg"
         team["team_stats"] = self._getStatsDict(row)
         i += 1
+
+      player_stats_df = self._getPlayerStatsDf(boxscore)
+      for _, row in player_stats_df.iterrows():
+        player = {}
+        player["player_name"] = row.loc["player_name"]
+        player["player_id"] = row.loc["player_id"]
+        player["position"] = row.loc["position"]
+        #player["jersey"] = row.loc["jersey"]
+        player["stats"] = self._getStatsDict(row)
+
+        if row.loc["team_id"] == score["team_0"]["team_id"]:
+          score["team_0"]['player_stats'].append(player)
+        elif row.loc["team_id"] == score["team_1"]["team_id"]:
+          score["team_1"]['player_stats'].append(player)
 
     else:
       team_info_df = self._getTeamInfoDf(summary)
@@ -169,3 +217,6 @@ class Boxscores(BoxscoreInterface):
 
     self.boxscores[game_id] = score
     return score
+  
+if __name__ == "__main__":
+  print(boxscoretraditionalv3.BoxScoreTraditionalV3(game_id="0022500397").player_stats.get_data_frame()[["nameI"]])
