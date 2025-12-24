@@ -77,13 +77,13 @@ class TestBoxscores(unittest.TestCase):
     self.assertTrue(isinstance(res['team_0']['team_city'], str))
     self.assertTrue(isinstance(res['team_0']['team_stats'], dict))
     self.assertTrue(isinstance(res['team_0']['team_logo'], str))
-    self.assertTrue(isinstance(res['team_0']['player_stats'], dict))
+    self.assertTrue(isinstance(res['team_0']['player_stats'], list))
 
     self.assertTrue(isinstance(res['team_1']['team_id'], int))
     self.assertTrue(isinstance(res['team_1']['team_city'], str))
     self.assertTrue(isinstance(res['team_1']['team_stats'], dict))
     self.assertTrue(isinstance(res['team_1']['team_logo'], str))
-    self.assertTrue(isinstance(res['team_1']['player_stats'], dict))
+    self.assertTrue(isinstance(res['team_1']['player_stats'], list))
 
   def test_getboxscore_futureidattributesexist(self):
     res = self.boxscores.getBoxscore(self.future_id)
@@ -122,6 +122,22 @@ class TestBoxscores(unittest.TestCase):
     self.assertTrue(isinstance(res['team_1']['team_id'], int))
     self.assertTrue(isinstance(res['team_1']['team_city'], str))
     self.assertTrue(isinstance(res['team_1']['team_logo'], str))
+
+  def test_boxscore_goodidplayerstatsattributesexist(self):
+    res = self.boxscores.getBoxscore(self.valid_id)["team_0"]["player_stats"][0]
+
+    self.assertIsNotNone(res['player_name'])
+    self.assertIsNotNone(res['player_id'])
+    self.assertIsNotNone(res['position'])
+    self.assertIsNotNone(res['stats'])
+
+  def test_boxscore_goodidplayerstatsattributesaregood(self):
+    res = self.boxscores.getBoxscore(self.valid_id)["team_0"]["player_stats"][0]
+
+    self.assertTrue(isinstance(res['player_name'], str))
+    self.assertTrue(isinstance(res['player_id'], int))
+    self.assertTrue(isinstance(res['player_name'], str))
+    self.assertTrue(isinstance(res['stats'], dict))
 
 if __name__ == "__main__":
   unittest.main()

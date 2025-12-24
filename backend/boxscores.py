@@ -217,6 +217,3 @@ class Boxscores(BoxscoreInterface):
 
     self.boxscores[game_id] = score
     return score
-  
-if __name__ == "__main__":
-  print(boxscoretraditionalv3.BoxScoreTraditionalV3(game_id="0022500397").player_stats.get_data_frame()[["nameI"]])
