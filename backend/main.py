@@ -10,6 +10,7 @@ from callQueue import CallQueue
 from standings import Standings
 from games import Games
 from boxscores import Boxscores
+from players import searchPlayers
 
 load_dotenv("../.env")
 ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS").split(",")
@@ -57,4 +58,11 @@ async def returnBoxscore(game_id: str):
         raise HTTPException(status_code=400, detail="game_id must be 10 numeric digits.")
     if res is None:
         raise HTTPException(status_code=404, detail=f"Could not find game with id {game_id}.")
+    return res
+
+@app.get("/search-player/{player_name}")
+async def playerSearch(player_name: str):
+    player_name = "".join(player_name.split())
+    player_name = player_name.replace("+", " ")
+    res = searchPlayers(player_name)
     return res
