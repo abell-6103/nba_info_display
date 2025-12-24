@@ -30,7 +30,7 @@ export default function TabLayout() {
         options={{
           title: 'Standings',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'information-circle' : 'information-circle-outline'} color={color} size={24}/>
+            <Ionicons name={focused ? 'menu-outline' : 'menu-outline'} color={color} size={24}/>
           ),
         }}
       />
@@ -39,7 +39,16 @@ export default function TabLayout() {
         options={{
           title: 'Games',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'information-circle' : 'information-circle-outline'} color={color} size={24}/>
+            <Ionicons name={focused ? 'basketball-outline' : 'basketball-outline'} color={color} size={24}/>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="players"
+        options={{
+          title: 'Players',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'search-circle' : 'search-outline'} color={color} size={24}/>
           ),
         }}
       />
