@@ -52,7 +52,7 @@ export default function PlayersScreen() {
   function PlayerCard({player} : {player: PlayerSearchInfo}) {
     return (
       <Pressable>
-        <View style={styles.tableRow}>
+        <View style={[styles.tableRow, player.active ? {} : {backgroundColor: '#7278a0'}]}>
           <View style={styles.tableCell}>
             <Image style={styles.playerCardHeadshot} source={{uri: player.player_headshot}} />
           </View>

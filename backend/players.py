@@ -1,5 +1,8 @@
 from nba_api.stats.static import players as nba_players
 
+def _sortFunc(item):
+    return not item['active']
+
 def searchPlayers(player_name: str) -> list:
     nba_res = nba_players.find_players_by_full_name(player_name)
     res = []
@@ -10,4 +13,5 @@ def searchPlayers(player_name: str) -> list:
             "active": player['is_active'],
             "player_headshot": f"https://cdn.nba.com/headshots/nba/latest/1040x760/{player['id']}.png"
         })
+    res.sort(key=_sortFunc)
     return res
