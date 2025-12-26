@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { View, Text, TextInput, Pressable } from 'react-native';
+import { use, useState } from 'react';
+import { View, Text, TextInput, Pressable, ActivityIndicator, ScrollView, Image } from 'react-native';
 import { styles } from '../styles';
 import { PlayerSearchInfo } from '../types';
 
@@ -10,6 +10,7 @@ export default function PlayersScreen() {
   const [players, setPlayers] = useState<PlayerSearchInfo[]>([]);
   const [loading_players, setLoadingPlayers] = useState(false);
   const [load_players_success, setLoadPlayersSuccess] = useState(true);
+  const [has_searched, setHasSearched] = useState(false);
 
   const getPlayers = async(player_name: string) => {
     setLoadingPlayers(true);
@@ -29,6 +30,7 @@ export default function PlayersScreen() {
       setPlayers([]);
       setLoadPlayersSuccess(false);
     }
+    setHasSearched(true);
     setLoadingPlayers(false);
   };
 
@@ -47,6 +49,68 @@ export default function PlayersScreen() {
     )
   }
 
+  function PlayerCard({player} : {player: PlayerSearchInfo}) {
+    return (
+      <Pressable>
+        <View style={styles.tableRow}>
+          <View style={styles.tableCell}>
+            <Image style={styles.playerCardHeadshot} source={{uri: player.player_headshot}} />
+          </View>
+          <View style={styles.tableCell}>
+            <Text style={styles.bold_text}>{player.player_name}</Text>
+          </View>
+          <View style={styles.tableCell}>
+            <Text style={styles.minor_text}>{
+              player.active ? (
+                "Active"
+              ) : (
+                "Not Active"
+              )
+            }</Text>
+          </View>
+        </View>
+      </Pressable>
+    )
+  }
+
+  function FailedSearchText({text} : {text: string}) {
+    return (
+      <View style={styles.FailedSearchView}>
+        <Text>
+          {text}
+        </Text>
+      </View>
+    )
+  }
+
+  function SearchResultDisplay() {
+    return (
+      <View style={styles.SearchResultDisplay}>
+        {loading_players ? (
+          <ActivityIndicator animating={true}></ActivityIndicator>
+        ) : (
+            has_searched ? (
+              load_players_success ? (
+                players?.length > 0 ? (
+                  <ScrollView>{
+                  players?.map((row, index) => (
+                    <PlayerCard key={index} player={row}/>
+                  ))
+                  }</ScrollView>
+                ) : (
+                  <FailedSearchText text={"No players found :("} />
+                )
+              ) : (
+                <FailedSearchText text={"Couldn't load players :("} />
+              )
+            ) : (
+              <></>
+            )
+        )}
+      </View>
+    )
+  }
+
   return (
     <View style={styles.table}>
       <View style={styles.tableHeader}>
@@ -57,6 +121,7 @@ export default function PlayersScreen() {
         value={target_player}/>
         <SearchButton />
       </View>
+      <SearchResultDisplay />
     </View>
   )
 }

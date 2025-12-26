@@ -34,7 +34,6 @@ export const styles = StyleSheet.create({
     flex: 1,
     width: "100%",
     backgroundColor: '#e0e0e0'
-    
   },
   tableHeader: {
     flexDirection: 'row',
@@ -119,5 +118,22 @@ export const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     textAlign: 'center',
+  },
+  SearchResultDisplay: {
+    flex: 1
+  },
+  FailedSearchView: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1
+  },
+  playerCardHeadshot: {
+    width: 44,
+    height: 32,
+    backgroundColor: "#fff",
+    resizeMode: 'cover',
+    marginHorizontal: 4,
+    borderWidth: 1,
+    borderRadius: 4,
   }
 });
