@@ -29,6 +29,7 @@ def searchPlayers(player_name: str) -> list:
 
 class Statline(BaseModel):
   gp: int
+  gs: int
   pts: int | float
   ast: int | float
   reb: int | float
@@ -48,6 +49,13 @@ class Statline(BaseModel):
   oreb: int | float
   dreb: int | float
   efg_pct: int | float
+
+  @staticmethod
+  def loadFromSeries(s: pd.Series):
+    res = Statline()
+    res.gp = s.loc['GP']
+    res.gs = s.loc['GS']
+    return res
 
 class PlayerStatsOut(BaseModel):
   player_name: str

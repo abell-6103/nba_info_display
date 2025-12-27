@@ -12,6 +12,11 @@ export default function PlayersScreen() {
   const [load_players_success, setLoadPlayersSuccess] = useState(true);
   const [has_searched, setHasSearched] = useState(false);
 
+  const [target_id, setTargetId] = useState(undefined);
+  const [player_stats, setPlayerStats] = useState(undefined);
+  const [loading_player_stats, setLoadingPlayerStats] = useState(false);
+  const [load_player_stats_success, setLoadPlayerStatsSuccess] = useState(true);
+
   const getPlayers = async(player_name: string) => {
     setLoadingPlayers(true);
     try {
@@ -33,6 +38,27 @@ export default function PlayersScreen() {
     setHasSearched(true);
     setLoadingPlayers(false);
   };
+
+  const getPlayerStats = async(player_id: number) => {
+    setLoadingPlayerStats(true);
+    try {
+      const response = await fetch(api_uri + `/player-stats/${player_id}`);
+      if (response.ok) {
+        const json = await response.json();
+        setPlayerStats(json);
+        setLoadPlayerStatsSuccess(true);
+      } else {
+        console.error(`Failed to load stats for player with id ${player_id}`);
+        setPlayerStats(undefined);
+        setLoadPlayerStatsSuccess(false);
+      }
+    } catch (error) {
+      console.error(error);
+      setPlayerStats(undefined);
+      setLoadPlayerStatsSuccess(false);
+    }
+    setLoadingPlayerStats(false);
+  }
 
   function SearchButton() {
     function handlePress() {
