@@ -49,7 +49,10 @@ type StatInfo = {
 }
 
 type PlayerBoxscoreInfo = {
-
+  player_id: number;
+  player_name: string;
+  player_headshot: string;
+  stats: object;
 }
 
 type PlayerSearchInfo = {
@@ -76,6 +79,7 @@ export {
   StandingsRowInfo,
   TeamGameInfo,
   GameInfo,
+  PlayerBoxscoreInfo,
   PlayerSearchInfo,
   BoxscoreInfo
 }

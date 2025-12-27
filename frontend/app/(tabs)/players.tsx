@@ -1,21 +1,23 @@
 import { use, useState } from 'react';
-import { View, Text, TextInput, Pressable, ActivityIndicator, ScrollView, Image } from 'react-native';
+import { View, Text, TextInput, Pressable, ActivityIndicator, ScrollView, Image, Modal } from 'react-native';
 import { styles } from '../styles';
-import { PlayerSearchInfo } from '../types';
+import { PlayerSearchInfo, PlayerBoxscoreInfo } from '../types';
 
 export default function PlayersScreen() {
   const api_uri = process.env.EXPO_PUBLIC_API_URI;
 
-  const [target_player, setTargetPlayer] = useState("");
+  const [target_player, setTargetPlayer] = useState<string>("");
   const [players, setPlayers] = useState<PlayerSearchInfo[]>([]);
-  const [loading_players, setLoadingPlayers] = useState(false);
-  const [load_players_success, setLoadPlayersSuccess] = useState(true);
-  const [has_searched, setHasSearched] = useState(false);
+  const [loading_players, setLoadingPlayers] = useState<boolean>(false);
+  const [load_players_success, setLoadPlayersSuccess] = useState<boolean>(true);
+  const [has_searched, setHasSearched] = useState<boolean>(false);
 
-  const [target_id, setTargetId] = useState(undefined);
-  const [player_stats, setPlayerStats] = useState(undefined);
-  const [loading_player_stats, setLoadingPlayerStats] = useState(false);
-  const [load_player_stats_success, setLoadPlayerStatsSuccess] = useState(true);
+  const [target_id, setTargetId] = useState<number>(-1);
+  const [player_stats, setPlayerStats] = useState<PlayerBoxscoreInfo>();
+  const [loading_player_stats, setLoadingPlayerStats] = useState<boolean>(false);
+  const [load_player_stats_success, setLoadPlayerStatsSuccess] = useState<boolean>(true);
+
+  const [modal_visible, setModalVisible] = useState<boolean>(false);
 
   const getPlayers = async(player_name: string) => {
     setLoadingPlayers(true);
@@ -76,8 +78,13 @@ export default function PlayersScreen() {
   }
 
   function PlayerCard({player} : {player: PlayerSearchInfo}) {
+    function handlePress() {
+      getPlayerStats(player.player_id);
+      setModalVisible(true);
+    }
+
     return (
-      <Pressable>
+      <Pressable onPress={handlePress}>
         <View style={[styles.tableRow, player.active ? {} : {backgroundColor: '#7278a0'}]}>
           <View style={styles.tableCell}>
             <Image style={styles.playerCardHeadshot} source={{uri: player.player_headshot}} />
@@ -148,6 +155,15 @@ export default function PlayersScreen() {
         <SearchButton />
       </View>
       <SearchResultDisplay />
+      <Modal
+        animationType='slide'
+        visible={modal_visible}
+        onRequestClose={() => (setModalVisible(!modal_visible))}
+      >
+        <View style={styles.container}>
+          <Text style={styles.text}>This is a modal.</Text>
+        </View>
+      </Modal>
     </View>
   )
 }
