@@ -10,7 +10,7 @@ from callQueue import CallQueue
 from standings import Standings
 from games import Games
 from boxscores import Boxscores
-from players import searchPlayers
+from players import searchPlayers, PlayerStats, PlayerStatsOut
 
 load_dotenv("../.env")
 ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS").split(",")
@@ -24,6 +24,7 @@ call_queue = CallQueue(call_delay)
 standings = Standings(call_queue)
 games = Games(call_queue)
 boxscores = Boxscores(call_queue)
+playerStats = PlayerStats(call_queue)
 
 app.add_middleware(
     CORSMiddleware,
@@ -66,3 +67,13 @@ async def playerSearch(player_name: str):
     player_name = player_name.replace("+", " ")
     res = searchPlayers(player_name)
     return res
+
+@app.get("/player-stats/{player_id}")
+async def returnPlayerStats(player_id: int):
+    try:
+        res: PlayerStatsOut = playerStats.getPlayerStats(player_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid format for player_id")
+    if res is None:
+        raise HTTPException(status_code=404, detail=f"Could not find stats for player with id {player_id}")
+    return res.model_dump()

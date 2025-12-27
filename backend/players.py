@@ -23,6 +23,7 @@ def searchPlayers(player_name: str) -> list:
   return res
 
 class Statline(BaseModel):
+  gp: int
   pts: int | float
   ast: int | float
   reb: int | float
@@ -59,4 +60,12 @@ class PlayerStatInterface(ABC):
     ...
 
 class PlayerStats(PlayerStatInterface):
-  pass
+  def __init__(self, call_queue: CallQueue):
+    self.stat_cache = {}
+    self.last_access = {}
+    self.call_queue = call_queue
+
+    self.wait_time = 60
+
+  def getPlayerStats(self, player_id: int) -> PlayerStatsOut:
+    return None
