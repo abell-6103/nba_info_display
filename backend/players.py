@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from pydantic import BaseModel
+from time import sleep, monotonic
 
 from callQueue import CallQueue
 
@@ -48,7 +49,7 @@ class PlayerStatsOut(BaseModel):
   player_name: str
   player_id: int
   player_headshot: str
-  stats: dict[str, Statline]
+  stats: dict[str, (Statline | dict[str, Statline])]
 
 class PlayerStatInterface(ABC):
   @abstractmethod
@@ -68,4 +69,22 @@ class PlayerStats(PlayerStatInterface):
     self.wait_time = 60
 
   def getPlayerStats(self, player_id: int) -> PlayerStatsOut:
-    return None
+    if not isinstance(player_id, int):
+      raise TypeError("player_id must be of type int")
+    
+    if player_id in self.stat_cache.keys() and (monotonic() - self.last_access[player_id]) <= self.wait_time:
+      return self.stat_cache[player_id]
+    
+    try:
+      nba_res = playercareerstats.PlayerCareerStats(player_id=player_id, per_mode36="Totals")
+    except:
+      return None
+    self.last_access[player_id] = monotonic()
+
+    dropped_cols = ['PLAYER_ID', 'LEAGUE_ID', 'Team_ID']
+    career_total_regular = nba_res.career_totals_regular_season.get_data_frame().drop(columns=dropped_cols)
+    career_total_playoff = nba_res.career_totals_post_season.get_data_frame().drop(columns=dropped_cols)
+    season_total_regular = nba_res.season_totals_regular_season.get_data_frame().drop(columns=dropped_cols)
+    season_total_playoff = nba_res.season_totals_post_season.get_data_frame().drop(columns=dropped_cols)
+
+    return nba_res
