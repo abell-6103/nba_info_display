@@ -8,6 +8,13 @@ from callQueue import CallQueue
 from nba_api.stats.static import players as nba_players
 from nba_api.stats.endpoints import playercareerstats
 
+REGULAR_STR = 'regular'
+PLAYOFF_STR = 'postseason'
+TOTAL_STR = 'total'
+PERGAME_STR = 'pergame'
+CAREER_STR = 'career'
+SEASON_STR = 'season'
+
 def _getPlayerHeadshot(player_id: int) -> str:
   return f"https://cdn.nba.com/headshots/nba/latest/1040x760/{player_id}.png"
 
@@ -52,16 +59,36 @@ class Statline(BaseModel):
 
   @staticmethod
   def loadFromSeries(s: pd.Series):
-    res = Statline()
-    res.gp = s.loc['GP']
-    res.gs = s.loc['GS']
+    res = Statline(
+      gp = s.loc['GP'],
+      gs = s.loc['GS'],
+      pts = s.loc['PTS'],
+      ast = s.loc['AST'],
+      reb = s.loc['REB'],
+      blk = s.loc['BLK'],
+      stl = s.loc['STL'],
+      tov = s.loc['TOV'],
+      pf = s.loc['PF'],
+      fga = s.loc['FGA'],
+      fgm = s.loc['FGM'],
+      fg_pct = s.loc['FG_PCT'],
+      fg3a = s.loc['FG3A'],
+      fg3m = s.loc['FG3M'],
+      fg3_pct = s.loc['FG3_PCT'],
+      fta = s.loc['FTA'],
+      ftm = s.loc['FTM'],
+      ft_pct = s.loc['FT_PCT'],
+      oreb = s.loc['OREB'],
+      dreb = s.loc['DREB'],
+      efg_pct = (s.loc['FGM'] + s.loc['FG3M']) / s.loc['FGA']
+    )
     return res
 
 class PlayerStatsOut(BaseModel):
   player_name: str
   player_id: int
   player_headshot: str
-  stats: dict[str, (Statline | dict[str, Statline])]
+  stats: dict[str, dict[str, dict[str, dict[str, int | float] | list[dict[str, int | float | str]]]]]
 
 class PlayerStatInterface(ABC):
   @abstractmethod
@@ -80,7 +107,7 @@ class PlayerStats(PlayerStatInterface):
 
     self.wait_time = 60
 
-  def _getPerGameStats(self, totals: pd.DataFrame):
+  def _getPerGameStats(self, totals: pd.DataFrame) -> pd.DataFrame:
     divisor = 'GP'
     ignored_cols = ['GS', divisor, 'SEASON_ID', 'TEAM_ABBREVIATION', 'PLAYER_AGE']
 
@@ -89,6 +116,12 @@ class PlayerStats(PlayerStatInterface):
     per_game_stats[altered_cols] = per_game_stats[altered_cols].div(per_game_stats[divisor], axis=0)
 
     return per_game_stats
+
+  def _getSeasonDict(self, season_series: pd.Series) -> dict:
+    season_dict = Statline.loadFromSeries(season_series).model_dump()
+    season_dict['season'] = season_series.loc['SEASON_ID']
+    season_dict['team'] = season_series.loc['TEAM_ABBREVIATION']
+    return season_dict
 
   def getPlayerStats(self, player_id: int) -> PlayerStatsOut:
     if not isinstance(player_id, int):
@@ -101,6 +134,10 @@ class PlayerStats(PlayerStatInterface):
     if player_id in self.stat_cache.keys() and (monotonic() - self.last_access[player_id]) <= self.wait_time:
       return self.stat_cache[player_id]
     
+    delay = self.call_queue.addCall().ready_time - monotonic()
+    if (delay > 0):
+      sleep(delay)
+    
     try:
       nba_res = playercareerstats.PlayerCareerStats(player_id=player_id, per_mode36="Totals")
     except:
@@ -109,16 +146,55 @@ class PlayerStats(PlayerStatInterface):
 
     dropped_cols = ['PLAYER_ID', 'LEAGUE_ID', 'TEAM_ID']
     career_total_regular = nba_res.career_totals_regular_season.get_data_frame().drop(columns=dropped_cols)
-    career_total_playoff = nba_res.career_totals_post_season.get_data_frame().drop(columns=dropped_cols)
     season_total_regular = nba_res.season_totals_regular_season.get_data_frame().drop(columns=dropped_cols)
+    career_total_playoff = nba_res.career_totals_post_season.get_data_frame().drop(columns=dropped_cols)
     season_total_playoff = nba_res.season_totals_post_season.get_data_frame().drop(columns=dropped_cols)
 
-    career_pergame_regular = self._getPerGameStats(career_total_regular)
-    career_pergame_playoff = self._getPerGameStats(career_total_playoff)
-    season_pergame_regular = self._getPerGameStats(season_total_regular)
-    season_pergame_playoff = self._getPerGameStats(season_total_playoff)
+    played_regular = False
+    if not career_total_regular.empty:
+      played_regular = True
+      career_pergame_regular = self._getPerGameStats(career_total_regular)
+      season_pergame_regular = self._getPerGameStats(season_total_regular)
+
+    played_playoff = False
+    if not career_total_playoff.empty:
+      played_playoff = True
+      career_pergame_playoff = self._getPerGameStats(career_total_playoff)
+      season_pergame_playoff = self._getPerGameStats(season_total_playoff)
 
     name = player_details['full_name']
     headshot = _getPlayerHeadshot(player_id)
+    stats = {}
+    
+    if played_regular:
+      stats[REGULAR_STR] = {}
+      stats[REGULAR_STR][TOTAL_STR] = {}
+      stats[REGULAR_STR][PERGAME_STR] = {}
 
-    return nba_res
+      stats[REGULAR_STR][TOTAL_STR][CAREER_STR] = Statline.loadFromSeries(career_total_regular.iloc[0]).model_dump()
+      stats[REGULAR_STR][TOTAL_STR][SEASON_STR] = []
+      for _, row in season_total_regular.iterrows():
+        stats[REGULAR_STR][TOTAL_STR][SEASON_STR].append(self._getSeasonDict(row))
+
+      stats[REGULAR_STR][PERGAME_STR][CAREER_STR] = Statline.loadFromSeries(career_pergame_regular.iloc[0]).model_dump()
+      stats[REGULAR_STR][PERGAME_STR][SEASON_STR] = []
+      for _, row in season_pergame_regular.iterrows():
+        stats[REGULAR_STR][PERGAME_STR][SEASON_STR].append(self._getSeasonDict(row))
+
+    if played_playoff:
+      stats[PLAYOFF_STR] = {}
+      stats[PLAYOFF_STR][TOTAL_STR] = {}
+      stats[PLAYOFF_STR][PERGAME_STR] = {}
+
+      stats[PLAYOFF_STR][TOTAL_STR][CAREER_STR] = Statline.loadFromSeries(career_total_playoff.iloc[0]).model_dump()
+      stats[PLAYOFF_STR][TOTAL_STR][SEASON_STR] = []
+      for _, row in season_total_playoff.iterrows():
+        stats[PLAYOFF_STR][TOTAL_STR][SEASON_STR].append(self._getSeasonDict(row))
+
+      stats[PLAYOFF_STR][PERGAME_STR][CAREER_STR] = Statline.loadFromSeries(career_pergame_playoff.iloc[0]).model_dump()
+      stats[PLAYOFF_STR][PERGAME_STR][SEASON_STR] = []
+      for _, row in season_pergame_playoff.iterrows():
+        stats[PLAYOFF_STR][PERGAME_STR][SEASON_STR].append(self._getSeasonDict(row))
+
+    res = PlayerStatsOut(player_name=name, player_id=player_id, player_headshot=headshot, stats=stats)
+    return res

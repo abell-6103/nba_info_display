@@ -9,7 +9,7 @@ class TestPlayerStats(unittest.TestCase):
     self.call_queue = CallQueue(self.delay)
     self.players = PlayerStats(self.call_queue)
     self.invalid_id_list = [-5, 1641704, 222222222222]
-    self.valid_id_list = [893, 2544, 1641705]
+    self.valid_id_list = [893, 2544, 202711, 1641705]
 
   def test_getplayerstats_badtype(self):
     with self.assertRaises(TypeError):
