@@ -1,11 +1,15 @@
 from abc import ABC, abstractmethod
 from pydantic import BaseModel
 from time import sleep, monotonic
+import pandas as pd
 
 from callQueue import CallQueue
 
 from nba_api.stats.static import players as nba_players
 from nba_api.stats.endpoints import playercareerstats
+
+def _getPlayerHeadshot(player_id: int) -> str:
+  return f"https://cdn.nba.com/headshots/nba/latest/1040x760/{player_id}.png"
 
 def _sortFunc(item):
   return not item['active']
@@ -18,7 +22,7 @@ def searchPlayers(player_name: str) -> list:
       "player_id": player['id'],
       "player_name": player['full_name'],
       "active": player['is_active'],
-      "player_headshot": f"https://cdn.nba.com/headshots/nba/latest/1040x760/{player['id']}.png"
+      "player_headshot": _getPlayerHeadshot(player['id'])
     })
   res.sort(key=_sortFunc)
   return res
@@ -68,10 +72,24 @@ class PlayerStats(PlayerStatInterface):
 
     self.wait_time = 60
 
+  def _getPerGameStats(self, totals: pd.DataFrame):
+    divisor = 'GP'
+    ignored_cols = ['GS', divisor, 'SEASON_ID', 'TEAM_ABBREVIATION', 'PLAYER_AGE']
+
+    per_game_stats = totals.copy(deep = True)
+    altered_cols = per_game_stats.columns.difference(ignored_cols)
+    per_game_stats[altered_cols] = per_game_stats[altered_cols].div(per_game_stats[divisor], axis=0)
+
+    return per_game_stats
+
   def getPlayerStats(self, player_id: int) -> PlayerStatsOut:
     if not isinstance(player_id, int):
       raise TypeError("player_id must be of type int")
     
+    player_details = nba_players.find_player_by_id(player_id)
+    if player_details is None:
+      return None
+
     if player_id in self.stat_cache.keys() and (monotonic() - self.last_access[player_id]) <= self.wait_time:
       return self.stat_cache[player_id]
     
@@ -81,10 +99,18 @@ class PlayerStats(PlayerStatInterface):
       return None
     self.last_access[player_id] = monotonic()
 
-    dropped_cols = ['PLAYER_ID', 'LEAGUE_ID', 'Team_ID']
+    dropped_cols = ['PLAYER_ID', 'LEAGUE_ID', 'TEAM_ID']
     career_total_regular = nba_res.career_totals_regular_season.get_data_frame().drop(columns=dropped_cols)
     career_total_playoff = nba_res.career_totals_post_season.get_data_frame().drop(columns=dropped_cols)
     season_total_regular = nba_res.season_totals_regular_season.get_data_frame().drop(columns=dropped_cols)
     season_total_playoff = nba_res.season_totals_post_season.get_data_frame().drop(columns=dropped_cols)
+
+    career_pergame_regular = self._getPerGameStats(career_total_regular)
+    career_pergame_playoff = self._getPerGameStats(career_total_playoff)
+    season_pergame_regular = self._getPerGameStats(season_total_regular)
+    season_pergame_playoff = self._getPerGameStats(season_total_playoff)
+
+    name = player_details['full_name']
+    headshot = _getPlayerHeadshot(player_id)
 
     return nba_res
