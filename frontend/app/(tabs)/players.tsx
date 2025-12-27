@@ -1,4 +1,4 @@
-import { use, useState } from 'react';
+import { useState } from 'react';
 import { View, Text, TextInput, Pressable, ActivityIndicator, ScrollView, Image, Modal } from 'react-native';
 import { styles } from '../styles';
 import { PlayerSearchInfo, PlayerBoxscoreInfo } from '../types';
@@ -12,12 +12,12 @@ export default function PlayersScreen() {
   const [load_players_success, setLoadPlayersSuccess] = useState<boolean>(true);
   const [has_searched, setHasSearched] = useState<boolean>(false);
 
-  const [target_id, setTargetId] = useState<number>(-1);
   const [player_stats, setPlayerStats] = useState<PlayerBoxscoreInfo>();
   const [loading_player_stats, setLoadingPlayerStats] = useState<boolean>(false);
   const [load_player_stats_success, setLoadPlayerStatsSuccess] = useState<boolean>(true);
 
   const [modal_visible, setModalVisible] = useState<boolean>(false);
+  const [playoffs_visible, setPlayoffsVisible] = useState<boolean>(false);
 
   const getPlayers = async(player_name: string) => {
     setLoadingPlayers(true);
@@ -48,6 +48,9 @@ export default function PlayersScreen() {
       if (response.ok) {
         const json = await response.json();
         setPlayerStats(json);
+        if (!json.hasOwnProperty('postseason')) {
+          setPlayoffsVisible(false);
+        }
         setLoadPlayerStatsSuccess(true);
       } else {
         console.error(`Failed to load stats for player with id ${player_id}`);
@@ -144,6 +147,25 @@ export default function PlayersScreen() {
     )
   }
 
+  function PlayoffsToggle() {
+    function togglePlayoffsVisible() {
+      setPlayoffsVisible(!playoffs_visible);
+    }
+
+    return (
+      <Pressable onPress={togglePlayoffsVisible} style={{flex: 1, margin: 4}}>
+        <View style={styles.ConferencePressableContainer}>
+          <View style={[styles.ConferenceTextBox, !playoffs_visible ? styles.ViewSelected : styles.ViewUnselected]}>
+            <Text style={!playoffs_visible ? styles.TextSelected : styles.TextUnselected}>Regular Season</Text>
+          </View>
+          <View style={[styles.ConferenceTextBox, playoffs_visible ? styles.ViewSelected : styles.ViewUnselected]}>
+            <Text style={playoffs_visible ? styles.TextSelected : styles.TextUnselected}>Playoffs</Text>
+          </View>
+        </View>
+      </Pressable>
+    )
+  }
+
   return (
     <View style={styles.table}>
       <View style={styles.tableHeader}>
@@ -158,10 +180,38 @@ export default function PlayersScreen() {
       <Modal
         animationType='slide'
         visible={modal_visible}
-        onRequestClose={() => (setModalVisible(!modal_visible))}
-      >
-        <View style={styles.container}>
-          <Text style={styles.text}>This is a modal.</Text>
+        onRequestClose={() => (setModalVisible(!modal_visible))}>
+        <View style={styles.table}>
+          <Pressable onPress={() => (setModalVisible(false))}
+            style={styles.modalExitButton}
+          >
+            aa
+          </Pressable>
+          {loading_player_stats ? (
+            <View style={{alignItems: 'center', justifyContent: 'center', flex: 1}}>
+              <ActivityIndicator animating={true}></ActivityIndicator>
+            </View>
+          ) : (
+            <>
+            <View style={styles.playerStatsHeader}>
+              <Image source={{uri: player_stats?.player_headshot}} style={
+                {height: 64, width: 88, resizeMode: 'cover'}
+              }/>
+              <Text style={styles.playerStatsTextHeader}>{player_stats?.player_name}</Text>
+            </View>
+            <ScrollView style={{flex: 1, width: '100%'}}>
+              {load_player_stats_success ? (
+                player_stats?.stats.hasOwnProperty("postseason") ? (
+                  <PlayoffsToggle />
+                ) : (
+                  <></>
+                )
+              ) : (
+                <Text>Failed to load player stats</Text>
+              )}
+            </ScrollView>
+            </>
+          )}
         </View>
       </Modal>
     </View>

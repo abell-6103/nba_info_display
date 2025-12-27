@@ -135,5 +135,27 @@ export const styles = StyleSheet.create({
     marginHorizontal: 4,
     borderWidth: 1,
     borderRadius: 4,
+  },
+  playerStatsHeader: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    columnGap: 64,
+    borderBottomWidth: 2,
+    borderColor: '#fff',
+    backgroundColor: '#181b1e',
+    width: "100%",
+  },
+  playerStatsTextHeader: {
+    fontSize: 20,
+    fontWeight: 700,
+    color: '#fff'
+  },
+  modalExitButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 10
   }
 });
