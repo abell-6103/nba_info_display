@@ -137,7 +137,6 @@ export const styles = StyleSheet.create({
     borderRadius: 4,
   },
   playerStatsHeader: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -146,6 +145,7 @@ export const styles = StyleSheet.create({
     borderColor: '#fff',
     backgroundColor: '#181b1e',
     width: "100%",
+    paddingTop: 8
   },
   playerStatsTextHeader: {
     fontSize: 20,
@@ -157,5 +157,85 @@ export const styles = StyleSheet.create({
     top: 10,
     right: 10,
     zIndex: 10
+  },
+  StatDisplayContainer: {
+    margin: 4,
+  },
+  StatDisplayTextHeader: {
+    fontWeight: 600,
+    fontSize: 16,
+  },
+  StatDisplayTable: {
+    borderWidth: 1,
+    borderColor: "#fff",
+    flex: 1,
+    margin: 2,
+    backgroundColor: '#25292e',
+    flexDirection: 'row',
+  },
+  StatDisplayTableHeader: {
+    flexDirection: 'row',
+  },
+  StatDisplayTableRow: {
+    flexDirection: 'row',
+  },
+  StatDisplayTableBody: {
+    flexDirection: 'column',
+    width: '100%'
+  },
+  StatDisplayTableAnchor: {
+    borderRightWidth: 1,
+    borderColor: '#fff'
+  },
+  StatDisplayTableMainCell: {
+    flexDirection: 'row',
+    height: 18,
+    width: 64,
+    padding: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#fff',
+    backgroundColor: '#181b1e',
+    columnGap: 2
+  },
+  StatDisplayTableMainCellWide: {
+    flexDirection: 'row',
+    height: 18,
+    width: 128,
+    padding: 4,
+    alignItems: 'center',
+    justifyContent: 'space-evenly',
+    borderWidth: 1,
+    borderColor: '#fff',
+    backgroundColor: '#181b1e',
+    columnGap: 4
+  },
+  StatDisplayTableCell: {
+    flexDirection: 'row',
+    height: 18,
+    width: 64,
+    padding: 4,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    borderWidth: 1,
+    borderColor: '#aaa',
+  },
+  StatDisplayTableCellWide: {
+    flexDirection: 'row',
+    height: 18,
+    width: 128,
+    padding: 4,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    borderWidth: 1,
+    borderColor: '#aaa',
+  },
+  StatDisplayTableTextBold: {
+    color: '#fff',
+    fontWeight: 400,
+  },
+  StatDisplayTableText: {
+    color: '#eee'
   }
 });

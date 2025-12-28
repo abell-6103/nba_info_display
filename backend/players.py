@@ -35,6 +35,7 @@ def searchPlayers(player_name: str) -> list:
   return res
 
 class Statline(BaseModel):
+  min: int | float
   gp: int
   gs: int
   pts: int | float
@@ -60,6 +61,7 @@ class Statline(BaseModel):
   @staticmethod
   def loadFromSeries(s: pd.Series):
     res = Statline(
+      min = s.loc['MIN'],
       gp = s.loc['GP'],
       gs = s.loc['GS'],
       pts = s.loc['PTS'],
@@ -80,7 +82,7 @@ class Statline(BaseModel):
       ft_pct = s.loc['FT_PCT'],
       oreb = s.loc['OREB'],
       dreb = s.loc['DREB'],
-      efg_pct = (s.loc['FGM'] + s.loc['FG3M']) / s.loc['FGA'] if s.loc['FGA'] > 0 else 0
+      efg_pct = ((s.loc['FGM'] + s.loc['FG3M']) / s.loc['FGA'] if s.loc['FGA'] > 0 else 0) if s.loc['FG3M'] is not None else s.loc['FG_PCT']
     )
     return res
 
@@ -109,7 +111,7 @@ class PlayerStats(PlayerStatInterface):
 
   def _getPerGameStats(self, totals: pd.DataFrame) -> pd.DataFrame:
     divisor = 'GP'
-    ignored_cols = ['GS', divisor, 'SEASON_ID', 'TEAM_ABBREVIATION', 'PLAYER_AGE']
+    ignored_cols = ['GS', divisor, 'FG_PCT', 'FG3_PCT', 'FT_PCT', 'SEASON_ID', 'TEAM_ABBREVIATION', 'PLAYER_AGE']
 
     per_game_stats = totals.copy(deep = True)
     altered_cols = per_game_stats.columns.difference(ignored_cols)
