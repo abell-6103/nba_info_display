@@ -11,6 +11,7 @@ from standings import Standings
 from games import Games
 from boxscores import Boxscores
 from players import searchPlayers, PlayerStats, PlayerStatsOut
+from news import News
 
 load_dotenv("../.env")
 ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS").split(",")
@@ -25,6 +26,7 @@ standings = Standings(call_queue)
 games = Games(call_queue)
 boxscores = Boxscores(call_queue)
 playerStats = PlayerStats(call_queue)
+news = News()
 
 app.add_middleware(
     CORSMiddleware,
@@ -77,3 +79,11 @@ async def returnPlayerStats(player_id: int):
     if res is None:
         raise HTTPException(status_code=404, detail=f"Could not find stats for player with id {player_id}")
     return res.model_dump()
+
+@app.get("/news/")
+async def returnNews():
+    res = []
+    articles = news.getNews()
+    for article in articles:
+        res.append(article.model_dump())
+    return res
