@@ -75,11 +75,19 @@ type BoxscoreInfo = {
   score_exists: boolean;
 }
 
+type ArticleInfo = {
+  title: string;
+  source: string;
+  href: string;
+  publish_time: string;
+}
+
 export {
   StandingsRowInfo,
   TeamGameInfo,
   GameInfo,
   PlayerBoxscoreInfo,
   PlayerSearchInfo,
-  BoxscoreInfo
+  BoxscoreInfo,
+  ArticleInfo
 }
