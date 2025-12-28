@@ -124,7 +124,7 @@ export default function Games() {
           <View style={[styles.tableHeader, {alignContent: 'center'}]}>
             <DatePressable />
           </View>
-          {games?.length > 0 ? (
+          {(games?.length > 0) && games_loadSuccess ? (
             <GamesTable />
           ) : (
             <View style={styles.container}>
