@@ -27,6 +27,7 @@ export default function Games() {
       if (response.ok) {
         const json = await response.json();
         setGames(json);
+        setGamesLoadSuccess(true);
       } else {
         console.error(`Couldn't load games from ${target_day}`)
         setGamesLoadSuccess(false);
