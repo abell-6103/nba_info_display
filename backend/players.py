@@ -82,7 +82,7 @@ class Statline(BaseModel):
       ft_pct = s.loc['FT_PCT'],
       oreb = s.loc['OREB'],
       dreb = s.loc['DREB'],
-      efg_pct = ((s.loc['FGM'] + s.loc['FG3M']) / s.loc['FGA'] if s.loc['FGA'] > 0 else 0) if s.loc['FG3M'] is not None else s.loc['FG_PCT']
+      efg_pct = (s.loc['FGM'] + s.loc['FG3M']) / s.loc['FGA'] if s.loc['FGA'] > 0 else 0
     )
     return res
 
