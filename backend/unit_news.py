@@ -11,7 +11,7 @@ def valid_href(href: str):
   sleep(delay)
   r = requests.head(href, headers={'User-agent': 'Mozilla/5.0'})
   redirect_codes = [301, 302, 303, 307, 308]
-  if r.status_code == 301:
+  if r.status_code in redirect_codes:
     new_href = r.headers['Location']
     return valid_href(new_href)
   return r.status_code == 200 or r.status_code == 304
