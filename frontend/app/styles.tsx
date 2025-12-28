@@ -237,5 +237,10 @@ export const styles = StyleSheet.create({
   },
   StatDisplayTableText: {
     color: '#eee'
+  },
+  CloseButton: {
+    backgroundColor: '#31396d',
+    borderRadius: 4,
+    padding: 2,
   }
 });

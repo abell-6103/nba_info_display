@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { View, Text, TextInput, Pressable, ActivityIndicator, ScrollView, Image, Modal } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { styles } from '../styles';
 import { PlayerSearchInfo, PlayerBoxscoreInfo } from '../types';
 
@@ -360,7 +361,9 @@ export default function PlayersScreen() {
           <Pressable onPress={() => (setModalVisible(false))}
             style={styles.modalExitButton}
           >
-            aa
+            <View style={styles.CloseButton}>
+              <Ionicons name={'close-outline'} size={24} color={'#fff'}/>
+            </View>
           </Pressable>
           {loading_player_stats ? (
             <View style={{ alignItems: 'center', justifyContent: 'center', flex: 1 }}>
