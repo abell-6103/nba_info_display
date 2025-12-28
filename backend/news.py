@@ -37,22 +37,24 @@ def _fetchEspnNews() -> list[ArticleInfo]:
     return []
   
   # Generate and return list
-  res = []
-  espn_articles = response["articles"]
-  for article in espn_articles:
-    article_title = article['headline']
-    article_source = "ESPN"
-    article_href = article['links']['web']['href']
-    article_publish_time = article['published']
-    res.append(ArticleInfo(title=article_title, source=article_source, href=article_href,
-                           publish_time=article_publish_time))
-  return res
+  try:
+    res = []
+    espn_articles = response["articles"]
+    for article in espn_articles:
+      article_title = article['headline']
+      article_source = "ESPN"
+      article_href = article['links']['web']['href']
+      article_publish_time = article['published']
+      res.append(ArticleInfo(title=article_title, source=article_source, href=article_href,
+                            publish_time=article_publish_time))
+    return res
+  except KeyError:
+    return []
 
 def _fetchNbaDotComNews() -> list[ArticleInfo]:
   # Request data
   r = requests.get(NBA_NEWS_URL)
   if not r.status_code == 200:
-    print("Unsuccessful request")
     return []
   
   # Scrape for json
@@ -60,13 +62,11 @@ def _fetchNbaDotComNews() -> list[ArticleInfo]:
   soup = BeautifulSoup(page_text, 'html.parser')
   scripts = soup.find_all('script', attrs={"id": "__NEXT_DATA__"})
   if len(scripts) <= 0:
-    print("No scripts found")
     return []
   response = json.loads(scripts[0].text)
   try:
     nba_articles = response['props']['pageProps']['category']['latest']['items']
   except KeyError:
-    print("Couldn't find attributes")
     return []
 
   # Generate and return list
