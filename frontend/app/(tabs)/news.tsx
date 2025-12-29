@@ -1,5 +1,5 @@
-import { use, useState } from 'react';
-import { View, Text } from 'react-native';
+import { useState, useEffect } from 'react';
+import { View, Text, ActivityIndicator, ScrollView, Linking, Pressable } from 'react-native';
 import { styles } from '../styles';
 import { ArticleInfo } from '../types';
 
@@ -29,11 +29,71 @@ export default function News() {
     setLoadingNews(false);
   }
 
+  useEffect(() => {
+    getNews();
+  }, []);
+
+  function getTimeSincePublished(article: ArticleInfo): String {
+    const article_date = new Date(article.publish_time);
+    const ms_since = Date.now() - article_date.getTime();
+
+    const minutes_since = Math.floor(ms_since / 60000);
+    if (minutes_since < 60) {
+      return `${minutes_since}m ago`;
+    }
+
+    const hours_since = Math.floor(minutes_since / 60);
+    if (hours_since < 24) {
+      return `${hours_since}h ago`
+    }
+
+    const days_since = Math.floor(hours_since / 24);
+    return `${days_since}d ago`;
+  }
+
+  function NewsCard({article}: {article: ArticleInfo}) {
+    const handlePress = async () => {
+      const supported = await Linking.canOpenURL(article.href);
+      if (supported) {
+        await Linking.openURL(article.href)
+      } else {
+        console.warn(`Cannot open URL: ${article.href}`)
+      }
+    }
+
+    return (
+      <View style={styles.NewsCard}>
+        <Pressable style={{flex: 1}} onPress={handlePress}>
+          <View style={styles.NewsCardBody}>
+            <Text style={styles.NewsCardTitle}>{article.title}</Text>
+            <Text style={styles.NewsCardSubtitle}>Source: {article.source} - {getTimeSincePublished(article)}</Text>
+          </View>
+        </Pressable>
+      </View>
+    )
+  }
+
+  function NewsFeed() {
+    return (
+      <ScrollView>
+        {news?.map((article, index) => (
+          <NewsCard key={index} article={article}/>
+        ))}
+      </ScrollView>
+    )
+  }
+
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>
-        News page
-      </Text>
+      {loading_news ? (
+        <ActivityIndicator animating={true}/>
+      ) : (
+        load_news_success ? (
+          <NewsFeed />
+        ) : (
+          <Text style={styles.text}>Couldn't load news :(</Text>
+        )
+      )}
     </View>
   )
 }

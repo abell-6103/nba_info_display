@@ -242,5 +242,31 @@ export const styles = StyleSheet.create({
     backgroundColor: '#31396d',
     borderRadius: 4,
     padding: 2,
+  },
+  NewsCard: {
+    borderRadius: 12,
+    backgroundColor: '#fff',
+    padding: 12,
+    margin: 6,
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  NewsCardBody: {
+    flexDirection: 'column',
+    flex: 3
+  },
+  NewsCardSide: {
+    flexDirection: 'column',
+    flex: 1,
+    alignItems: 'center'
+  },
+  NewsCardTitle: {
+    fontSize: 16,
+    fontWeight: 600,
+    margin: 2
+  },
+  NewsCardSubtitle: {
+    fontStyle: 'italic',
+    margin: 1
   }
 });
