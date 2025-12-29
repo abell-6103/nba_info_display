@@ -7,7 +7,7 @@ import json
 
 from time import monotonic, sleep
 
-ESPN_API_URL = "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/news"
+ESPN_API_URL = "https://site.api.espn.com/apis/site/v2/sports/basketball/nba/news?limit=40"
 NBA_NEWS_URL = "https://www.nba.com/news/category/top-stories"
 
 class ArticleInfo(BaseModel):
@@ -37,10 +37,14 @@ def _fetchEspnNews() -> list[ArticleInfo]:
     return []
   
   # Generate and return list
+  good_article_types = ['HeadlineNews']
   try:
     res = []
     espn_articles = response["articles"]
     for article in espn_articles:
+      if article['type'] not in good_article_types:
+        # ESPN writes a lot of articles, so we only want the highlights
+        continue
       article_title = article['headline']
       article_source = "ESPN"
       article_href = article['links']['web']['href']
