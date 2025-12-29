@@ -75,7 +75,7 @@ export default function News() {
 
   function NewsFeed() {
     return (
-      <ScrollView>
+      <ScrollView style={{flex: 1, width: '100%'}}>
         {news?.map((article, index) => (
           <NewsCard key={index} article={article}/>
         ))}
