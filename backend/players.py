@@ -119,6 +119,11 @@ class PlayerStatsOut(BaseModel):
   player_headshot: str
   stats: dict[str, dict[str, dict[str, dict[str, int | float] | list[dict[str, int | float | str]]]]]
 
+def getSeasonOverlap(player_1: PlayerStatsOut, player_2: PlayerStatsOut) -> list[str]:
+  p1_seasons: list = [key for key in player_1.stats[REGULAR_STR][TOTAL_STR].keys() if key != "career"]
+  p2_seasons: list = [key for key in player_2.stats[REGULAR_STR][TOTAL_STR].keys() if key != "career"]
+  return [season for season in p1_seasons if season in p2_seasons]
+
 class PlayerCompareResult(BaseModel):
   player_1: PlayerStatsOut
   player_2: PlayerStatsOut
