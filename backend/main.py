@@ -10,7 +10,7 @@ from callQueue import CallQueue
 from standings import Standings
 from games import Games
 from boxscores import Boxscores
-from players import searchPlayers, PlayerStats, PlayerStatsOut
+from players import searchPlayers, PlayerStats, CompareMode, InvalidComparisonException, PlayerStatsOut, PlayerCompareResult
 from news import News
 
 load_dotenv("../.env")
@@ -87,3 +87,22 @@ async def returnNews():
     for article in articles:
         res.append(article.model_dump())
     return res
+
+@app.get("/compare/")
+async def returnCareerCompare(p1_id: int = None, p2_id: int = None,
+                              mode_type: str = None, season_name: str = None):
+    
+    try:
+        compare_mode = CompareMode(mode_type, season_name)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Could not derive compare mode from query")
+    
+    try:
+        comparison: PlayerCompareResult = playerStats.comparePlayerStats(p1_id, p2_id, compare_mode)
+    except InvalidComparisonException:
+        raise HTTPException(status_code=400, detail="Invalid comparison")
+
+    if comparison == None:
+        raise HTTPException(status_code=404, detail="One or more players not found")
+    
+    return comparison.model_dump()

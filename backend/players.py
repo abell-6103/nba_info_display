@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from pydantic import BaseModel
+from pydantic import BaseModel, field_serializer
 from time import sleep, monotonic
 from enum import Enum
 import pandas as pd
@@ -96,10 +96,20 @@ _mode_str_map = {
   ModeTypeEnum.CAREER: CAREER_STR
 }
 
+_str_mode_map = {
+  SEASON_STR: ModeTypeEnum.SEASON,
+  CAREER_STR: ModeTypeEnum.CAREER
+}
+
 class CompareMode:
   def __init__(self, mode_type: ModeTypeEnum, season_name: str = None):
     if mode_type == ModeTypeEnum.SEASON and season_name is None:
       raise ValueError("SEASON type comparison must have a season_name")
+    if isinstance(mode_type, str):
+      try:
+        mode_type = _str_mode_map(mode_type)
+      except KeyError:
+        raise ValueError("mode_type could not be mapped")
     self.mode_type: ModeTypeEnum  = mode_type
     self.season_name: str         = season_name
 
@@ -115,6 +125,18 @@ class PlayerCompareResult(BaseModel):
   mode: CompareMode
   result: Statline
 
+  model_config = {"arbitrary_types_allowed": True}
+
+  @field_serializer("mode")
+  def serialize_mode(self, mode: CompareMode):
+    res = {"mode_type": _mode_str_map(mode.mode_type)}
+    if mode.mode_type == ModeTypeEnum.SEASON:
+      res["season_name"] = mode.season_name
+    return res
+
+class InvalidComparisonException(ValueError):
+  pass
+
 class PlayerStatInterface(ABC):
   @abstractmethod
   def __init__(self, call_queue: CallQueue):
@@ -122,6 +144,10 @@ class PlayerStatInterface(ABC):
 
   @abstractmethod
   def getPlayerStats(player_id: int) -> PlayerStatsOut:
+    ...
+
+  @abstractmethod
+  def comparePlayerStats(p1_id: int, p2_id: int, mode: CompareMode) -> PlayerCompareResult:
     ...
 
 class PlayerStats(PlayerStatInterface):
