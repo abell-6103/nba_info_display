@@ -92,6 +92,9 @@ async def returnNews():
 async def returnCareerCompare(p1_id: int = None, p2_id: int = None,
                               mode_type: str = None, season_name: str = None):
     
+    if p1_id == None or p2_id == None or mode_type == None:
+        raise HTTPException(status_code=400, detail="One or more arguments missing")
+
     try:
         compare_mode = CompareMode(mode_type, season_name)
     except ValueError:

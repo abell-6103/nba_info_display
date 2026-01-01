@@ -107,7 +107,7 @@ class CompareMode:
       raise ValueError("SEASON type comparison must have a season_name")
     if isinstance(mode_type, str):
       try:
-        mode_type = _str_mode_map(mode_type)
+        mode_type = _str_mode_map[mode_type]
       except KeyError:
         raise ValueError("mode_type could not be mapped")
     self.mode_type: ModeTypeEnum  = mode_type
@@ -120,8 +120,8 @@ class PlayerStatsOut(BaseModel):
   stats: dict[str, dict[str, dict[str, dict[str, int | float] | list[dict[str, int | float | str]]]]]
 
 def getSeasonOverlap(player_1: PlayerStatsOut, player_2: PlayerStatsOut) -> list[str]:
-  p1_seasons: list = [key for key in player_1.stats[REGULAR_STR][TOTAL_STR].keys() if key != "career"]
-  p2_seasons: list = [key for key in player_2.stats[REGULAR_STR][TOTAL_STR].keys() if key != "career"]
+  p1_seasons: list = [line[SEASON_STR] for line in player_1.stats[REGULAR_STR][TOTAL_STR][SEASON_STR]]
+  p2_seasons: list = [line[SEASON_STR] for line in player_2.stats[REGULAR_STR][TOTAL_STR][SEASON_STR]]
   return [season for season in p1_seasons if season in p2_seasons]
 
 class PlayerCompareResult(BaseModel):
@@ -134,7 +134,7 @@ class PlayerCompareResult(BaseModel):
 
   @field_serializer("mode")
   def serialize_mode(self, mode: CompareMode):
-    res = {"mode_type": _mode_str_map(mode.mode_type)}
+    res = {"mode_type": _mode_str_map[mode.mode_type]}
     if mode.mode_type == ModeTypeEnum.SEASON:
       res["season_name"] = mode.season_name
     return res
@@ -255,4 +255,16 @@ class PlayerStats(PlayerStatInterface):
     res = PlayerStatsOut(player_name=name, player_id=player_id, player_headshot=headshot, stats=stats)
     return res
   
-  
+  def comparePlayerStats(self, p1_id: int, p2_id: int, mode: CompareMode) -> PlayerCompareResult:
+    player_1 = self.getPlayerStats(p1_id)
+    player_2 = self.getPlayerStats(p2_id)
+    if player_1 is None or player_2 is None:
+      return None
+    
+    season_overlap = getSeasonOverlap(player_1, player_2)
+    if mode.mode_type == ModeTypeEnum.SEASON and mode.season_name not in season_overlap:
+      raise InvalidComparisonException("No overlap in seasons between given players")
+    
+    temp_res = player_1.stats[REGULAR_STR][TOTAL_STR][CAREER_STR]
+
+    return PlayerCompareResult(player_1=player_1, player_2=player_2, mode=mode, result=temp_res)
