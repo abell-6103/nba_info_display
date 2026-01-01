@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from pydantic import BaseModel
 from time import sleep, monotonic
+from enum import Enum
 import pandas as pd
 
 from callQueue import CallQueue
@@ -86,11 +87,33 @@ class Statline(BaseModel):
     )
     return res
 
+class ModeTypeEnum(Enum):
+  SEASON = 1
+  CAREER = 2
+
+_mode_str_map = {
+  ModeTypeEnum.SEASON: SEASON_STR,
+  ModeTypeEnum.CAREER: CAREER_STR
+}
+
+class CompareMode:
+  def __init__(self, mode_type: ModeTypeEnum, season_name: str = None):
+    if mode_type == ModeTypeEnum.SEASON and season_name is None:
+      raise ValueError("SEASON type comparison must have a season_name")
+    self.mode_type: ModeTypeEnum  = mode_type
+    self.season_name: str         = season_name
+
 class PlayerStatsOut(BaseModel):
   player_name: str
   player_id: int
   player_headshot: str
   stats: dict[str, dict[str, dict[str, dict[str, int | float] | list[dict[str, int | float | str]]]]]
+
+class PlayerCompareResult(BaseModel):
+  player_1: PlayerStatsOut
+  player_2: PlayerStatsOut
+  mode: CompareMode
+  result: Statline
 
 class PlayerStatInterface(ABC):
   @abstractmethod
@@ -200,3 +223,5 @@ class PlayerStats(PlayerStatInterface):
 
     res = PlayerStatsOut(player_name=name, player_id=player_id, player_headshot=headshot, stats=stats)
     return res
+  
+  

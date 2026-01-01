@@ -82,6 +82,18 @@ type ArticleInfo = {
   publish_time: string;
 }
 
+type CompareMode = {
+  mode_type: string;
+  season_name: string;
+}
+
+type PlayerCompareResult = {
+  player_1: PlayerBoxscoreInfo;
+  player_2: PlayerBoxscoreInfo;
+  mode: CompareMode;
+  result: StatInfo;
+}
+
 export {
   StandingsRowInfo,
   TeamGameInfo,
@@ -89,5 +101,7 @@ export {
   PlayerBoxscoreInfo,
   PlayerSearchInfo,
   BoxscoreInfo,
-  ArticleInfo
+  ArticleInfo,
+  CompareMode,
+  PlayerCompareResult
 }
