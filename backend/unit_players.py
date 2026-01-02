@@ -1,6 +1,6 @@
 import unittest
 
-from players import PlayerStats, PlayerStatsOut
+from players import PlayerStats, PlayerStatsOut, PlayerCompareResult, CompareMode, InvalidComparisonException
 from callQueue import CallQueue
 
 class TestPlayerStats(unittest.TestCase):
@@ -30,6 +30,32 @@ class TestPlayerStats(unittest.TestCase):
   def test_getplayerstats_validinputgoodtype(self):
     for valid_id in self.valid_id_list:
       self.assertTrue(isinstance(self.players.getPlayerStats(valid_id), PlayerStatsOut))
+
+  def test_compareplayerstats_badtype(self):
+    with self.assertRaises(TypeError):
+      self.players.comparePlayerStats("this is not an int", "neither is this", "and this is not a mode")
+
+  def test_compareplayerstats_invalidinput(self):
+    mode = CompareMode('career')
+    self.assertIsNone(self.players.comparePlayerStats(self.invalid_id_list[0], self.invalid_id_list[1], mode))
+
+  def test_compareplayerstats_validinputgoodtype(self):
+    mode = CompareMode('career')
+    res = self.players.comparePlayerStats(self.valid_id_list[0], self.valid_id_list[1], mode)
+    self.assertTrue(isinstance(res, PlayerCompareResult))
+
+  def test_compareplayerstats_matchingstats(self):
+    mode = CompareMode('career')
+    res = self.players.comparePlayerStats(self.valid_id_list[0], self.valid_id_list[1], mode)
+    player_1 = self.players.getPlayerStats(self.valid_id_list[0])
+    player_2 = self.players.getPlayerStats(self.valid_id_list[1])
+    self.assertTrue(res.player_1 == player_1)
+    self.assertTrue(res.player_2 == player_2)
+
+  def test_compareplayerstats_invalidoverlap(self):
+    mode = CompareMode('season', '1965-66')
+    with self.assertRaises(InvalidComparisonException):
+      self.players.comparePlayerStats(self.valid_id_list[0], self.valid_id_list[1], mode)
 
 if __name__ == "__main__":
   unittest.main()

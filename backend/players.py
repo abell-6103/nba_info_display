@@ -146,10 +146,21 @@ class PlayerStatsOut(BaseModel):
   player_headshot: str
   stats: dict[str, dict[str, dict[str, dict[str, int | float] | list[dict[str, int | float | str]]]]]
 
+  def __eq__(self, other: "PlayerStatsOut"):
+    '''Checks if two players have same non-stat attributes'''
+    if self.player_name != other.player_name:
+      return False
+    if self.player_id != other.player_id:
+      return False
+    if self.player_headshot != other.player_headshot:
+      return False
+    return True
+
 def getSeasonOverlap(player_1: PlayerStatsOut, player_2: PlayerStatsOut) -> list[str]:
   p1_seasons: list = [line[SEASON_STR] for line in player_1.stats[REGULAR_STR][TOTAL_STR][SEASON_STR]]
   p2_seasons: list = [line[SEASON_STR] for line in player_2.stats[REGULAR_STR][TOTAL_STR][SEASON_STR]]
-  return [season for season in p1_seasons if season in p2_seasons]
+  res = list(set(p1_seasons) & set(p2_seasons))
+  return res
 
 def findSeasonWithName(lines: list[Statline], season_name: str) -> Statline:
   for line in lines:
@@ -162,6 +173,7 @@ class PlayerCompareResult(BaseModel):
   player_2: PlayerStatsOut
   mode: CompareMode
   result: dict[str, Statline]
+  season_overlap: list[str]
 
   model_config = {"arbitrary_types_allowed": True}
 
@@ -185,7 +197,7 @@ class PlayerStatInterface(ABC):
     ...
 
   @abstractmethod
-  def comparePlayerStats(p1_id: int, p2_id: int, mode: CompareMode) -> dict[PlayerCompareResult]:
+  def comparePlayerStats(p1_id: int, p2_id: int, mode: CompareMode) -> PlayerCompareResult:
     ...
 
 class PlayerStats(PlayerStatInterface):
@@ -288,7 +300,7 @@ class PlayerStats(PlayerStatInterface):
     res = PlayerStatsOut(player_name=name, player_id=player_id, player_headshot=headshot, stats=stats)
     return res
   
-  def comparePlayerStats(self, p1_id: int, p2_id: int, mode: CompareMode) -> dict[PlayerCompareResult]:
+  def comparePlayerStats(self, p1_id: int, p2_id: int, mode: CompareMode) -> PlayerCompareResult:
     # Load player stats
     player_1 = self.getPlayerStats(p1_id)
     player_2 = self.getPlayerStats(p2_id)
@@ -353,4 +365,4 @@ class PlayerStats(PlayerStatInterface):
       
     res = {TOTAL_STR: total_res, PERGAME_STR: pergame_res}
 
-    return PlayerCompareResult(player_1=player_1, player_2=player_2, mode=mode, result=res)
+    return PlayerCompareResult(player_1=player_1, player_2=player_2, mode=mode, result=res, season_overlap=season_overlap)

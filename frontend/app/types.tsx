@@ -87,11 +87,17 @@ type CompareMode = {
   season_name: string;
 }
 
+type ComparisonList = {
+  total: StatInfo;
+  pergame: StatInfo;
+}
+
 type PlayerCompareResult = {
   player_1: PlayerBoxscoreInfo;
   player_2: PlayerBoxscoreInfo;
   mode: CompareMode;
-  result: StatInfo;
+  result: ComparisonList;
+  season_overlap: string[];
 }
 
 export {
