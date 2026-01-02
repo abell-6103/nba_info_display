@@ -60,6 +60,33 @@ class Statline(BaseModel):
   efg_pct: int | float
 
   @staticmethod
+  def emptyLine() -> "Statline":
+    return Statline(
+      min       = 0,
+      gp        = 0,
+      gs        = 0,
+      pts       = 0,
+      ast       = 0,
+      reb       = 0,
+      blk       = 0,
+      stl       = 0,
+      tov       = 0,
+      pf        = 0,
+      fga       = 0,
+      fgm       = 0,
+      fg_pct    = 0,
+      fg3a      = 0,
+      fg3m      = 0,
+      fg3_pct   = 0,
+      fta       = 0,
+      ftm       = 0,
+      ft_pct    = 0,
+      oreb      = 0,
+      dreb      = 0,
+      efg_pct   = 0
+    )
+
+  @staticmethod
   def loadFromSeries(s: pd.Series):
     res = Statline(
       min = s.loc['MIN'],
@@ -124,11 +151,17 @@ def getSeasonOverlap(player_1: PlayerStatsOut, player_2: PlayerStatsOut) -> list
   p2_seasons: list = [line[SEASON_STR] for line in player_2.stats[REGULAR_STR][TOTAL_STR][SEASON_STR]]
   return [season for season in p1_seasons if season in p2_seasons]
 
+def findSeasonWithName(lines: list[Statline], season_name: str) -> Statline:
+  for line in lines:
+    if line[SEASON_STR] == season_name:
+      return line
+  return None
+
 class PlayerCompareResult(BaseModel):
   player_1: PlayerStatsOut
   player_2: PlayerStatsOut
   mode: CompareMode
-  result: Statline
+  result: dict[str, Statline]
 
   model_config = {"arbitrary_types_allowed": True}
 
@@ -152,7 +185,7 @@ class PlayerStatInterface(ABC):
     ...
 
   @abstractmethod
-  def comparePlayerStats(p1_id: int, p2_id: int, mode: CompareMode) -> PlayerCompareResult:
+  def comparePlayerStats(p1_id: int, p2_id: int, mode: CompareMode) -> dict[PlayerCompareResult]:
     ...
 
 class PlayerStats(PlayerStatInterface):
@@ -255,16 +288,69 @@ class PlayerStats(PlayerStatInterface):
     res = PlayerStatsOut(player_name=name, player_id=player_id, player_headshot=headshot, stats=stats)
     return res
   
-  def comparePlayerStats(self, p1_id: int, p2_id: int, mode: CompareMode) -> PlayerCompareResult:
+  def comparePlayerStats(self, p1_id: int, p2_id: int, mode: CompareMode) -> dict[PlayerCompareResult]:
+    # Load player stats
     player_1 = self.getPlayerStats(p1_id)
     player_2 = self.getPlayerStats(p2_id)
     if player_1 is None or player_2 is None:
       return None
     
+    # Check for valid comparison mode
     season_overlap = getSeasonOverlap(player_1, player_2)
     if mode.mode_type == ModeTypeEnum.SEASON and mode.season_name not in season_overlap:
       raise InvalidComparisonException("No overlap in seasons between given players")
     
-    temp_res = player_1.stats[REGULAR_STR][TOTAL_STR][CAREER_STR]
+    # Finds source statlines for comparison
+    p1_totals_dict = player_1.stats[REGULAR_STR][TOTAL_STR]
+    p2_totals_dict = player_2.stats[REGULAR_STR][TOTAL_STR]
+    p1_pergame_dict = player_1.stats[REGULAR_STR][PERGAME_STR]
+    p2_pergame_dict = player_2.stats[REGULAR_STR][PERGAME_STR]
+    if mode.mode_type == ModeTypeEnum.CAREER:
 
-    return PlayerCompareResult(player_1=player_1, player_2=player_2, mode=mode, result=temp_res)
+      p1_total: Statline    = p1_totals_dict[CAREER_STR]
+      p2_total: Statline    = p2_totals_dict[CAREER_STR]
+
+      p1_pergame: Statline  = p1_pergame_dict[CAREER_STR]
+      p2_pergame: Statline  = p2_pergame_dict[CAREER_STR]
+
+    elif mode.mode_type == ModeTypeEnum.SEASON:
+
+      p1_total: Statline    = findSeasonWithName(p1_totals_dict[SEASON_STR], mode.season_name)
+      p2_total: Statline    = findSeasonWithName(p2_totals_dict[SEASON_STR], mode.season_name)
+
+      p1_pergame: Statline  = findSeasonWithName(p1_pergame_dict[SEASON_STR], mode.season_name)
+      p2_pergame: Statline  = findSeasonWithName(p2_pergame_dict[SEASON_STR], mode.season_name)
+
+    else:
+      raise InvalidComparisonException("Invalid mode of comparison (should be career or season)")
+
+    # Perform comparison
+    total_res   = Statline.emptyLine()
+    pergame_res = Statline.emptyLine()
+
+    for name in total_res.model_dump():
+      p1_total_val = p1_total[name]
+      p2_total_val = p2_total[name]
+
+      p1_pergame_val = p1_pergame[name]
+      p2_pergame_val = p2_pergame[name]
+
+      if name == "tov": # For turnovers, less is better
+        p1_total_val *= -1
+        p2_total_val *= -1
+        p1_pergame_val *= -1
+        p2_pergame_val *= -1
+
+      if p1_total_val > p2_total_val:
+        setattr(total_res, name, 1)
+      elif p1_total_val < p2_total_val:
+        setattr(total_res, name, -1)
+
+      if p1_pergame_val > p2_pergame_val:
+        setattr(pergame_res, name, 1)
+      elif p1_pergame_val < p2_pergame_val:
+        setattr(pergame_res, name, -1)
+      
+    res = {TOTAL_STR: total_res, PERGAME_STR: pergame_res}
+
+    return PlayerCompareResult(player_1=player_1, player_2=player_2, mode=mode, result=res)
