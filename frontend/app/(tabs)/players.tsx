@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { View, Text, TextInput, Pressable, ActivityIndicator, ScrollView, Image, Modal } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { styles } from '../styles';
 import { PlayerSearchInfo, PlayerBoxscoreInfo } from '../types';
@@ -9,7 +10,13 @@ export default function PlayersScreen() {
   const api_uri = process.env.EXPO_PUBLIC_API_URI;
 
   const [target_player, setTargetPlayer] = useState<string>("");
-  const { players, loading_players, load_players_success, has_searched, getPlayers } = useSearch();
+  const { players, loading_players, load_players_success, has_searched, getPlayers, resetSearch } = useSearch();
+  useFocusEffect(
+    useCallback(() => {
+      setTargetPlayer("");
+      resetSearch();
+    }, [])
+  );
 
   const [player_stats, setPlayerStats] = useState<PlayerBoxscoreInfo>();
   const [loading_player_stats, setLoadingPlayerStats] = useState<boolean>(false);

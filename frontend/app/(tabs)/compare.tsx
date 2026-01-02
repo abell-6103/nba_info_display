@@ -1,18 +1,19 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { View, Text } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import { styles } from '../styles';
 import { CompareMode, PlayerCompareResult, PlayerSearchInfo } from '../types';
 import { useSearch } from '../hooks/SearchHook';
 
 export default function Compare() {
-  const { players, loading_players, load_players_success, has_searched, getPlayers } = useSearch();
+  const { players, loading_players, load_players_success, has_searched, getPlayers, resetSearch } = useSearch();
 
   const [comparison_loading, setComparisonLoading] = useState<boolean>(true);
   const [comparison_load_success, setComparisonLoadSuccess] = useState<boolean>(true);
   const [comparison, setComparison] = useState<PlayerCompareResult>();
 
   const api_uri = process.env.EXPO_PUBLIC_API_URI;
-  
+
   const getComparison = async (p1_id: number, p2_id: number, mode: CompareMode) => {
     setComparisonLoading(true);
     let uri = api_uri + `/compare/?mode_type=${mode.mode_type}&p1_id=${p1_id}&p2_id=${p2_id}`;

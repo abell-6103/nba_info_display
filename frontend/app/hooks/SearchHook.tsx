@@ -9,6 +9,13 @@ export function useSearch() {
 
   const api_uri = process.env.EXPO_PUBLIC_API_URI;
 
+  const resetData = () => {
+    setLoading(false);
+    setLoadSuccess(true);
+    setPlayers([]);
+    setHasSearched(false);
+  }
+
   const getPlayers = async (player_name: string) => {
     const target = player_name.trim().replace(/\s+/g, '+');
     setLoading(true);
@@ -37,6 +44,7 @@ export function useSearch() {
     load_players_success: load_success,
     players,
     has_searched,
-    getPlayers
+    getPlayers,
+    resetSearch: resetData
   }
 }
