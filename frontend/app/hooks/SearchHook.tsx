@@ -10,9 +10,10 @@ export function useSearch() {
   const api_uri = process.env.EXPO_PUBLIC_API_URI;
 
   const getPlayers = async (player_name: string) => {
+    const target = player_name.trim().replace(/\s+/g, '+');
     setLoading(true);
     try {
-      const response = await fetch(api_uri + `/search-player/${player_name}`);
+      const response = await fetch(api_uri + `/search-player/${target}`);
       if (response.ok) {
         const json = await response.json();
         setPlayers(json);

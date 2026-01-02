@@ -44,8 +44,7 @@ export default function PlayersScreen() {
 
   function SearchButton() {
     function handlePress() {
-      const formatted_target = target_player.trim().replace(/\s+/g, '+');
-      getPlayers(formatted_target);
+      getPlayers(target_player);
     }
 
     return (
