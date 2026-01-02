@@ -48,7 +48,7 @@ export default function TabLayout() {
         options={{
           title: 'Players',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'search-sharp' : 'search-outline'} color={color} size={24}/>
+            <Ionicons name={focused ? 'person-sharp' : 'person-outline'} color={color} size={24}/>
           ),
         }}
       />
@@ -58,6 +58,15 @@ export default function TabLayout() {
           title: 'News',
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? 'newspaper-sharp' : 'newspaper-outline'} color={color} size={24}/>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="compare"
+        options={{
+          title: 'Compare',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'stats-chart-sharp' : 'stats-chart-outline'} color={color} size={24}/>
           ),
         }}
       />
