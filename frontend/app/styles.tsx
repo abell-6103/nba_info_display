@@ -19,7 +19,8 @@ export const styles = StyleSheet.create({
   bold_text: {
     color: '#fff',
     fontWeight: 600,
-    fontSize: 16
+    fontSize: 16,
+    textAlign: 'center'
   },
   minor_text: {
     color: '#fff',
