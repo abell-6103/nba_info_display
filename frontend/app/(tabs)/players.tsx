@@ -3,15 +3,13 @@ import { View, Text, TextInput, Pressable, ActivityIndicator, ScrollView, Image,
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { styles } from '../styles';
 import { PlayerSearchInfo, PlayerBoxscoreInfo } from '../types';
+import { useSearch } from '../hooks/SearchHook';
 
 export default function PlayersScreen() {
   const api_uri = process.env.EXPO_PUBLIC_API_URI;
 
   const [target_player, setTargetPlayer] = useState<string>("");
-  const [players, setPlayers] = useState<PlayerSearchInfo[]>([]);
-  const [loading_players, setLoadingPlayers] = useState<boolean>(false);
-  const [load_players_success, setLoadPlayersSuccess] = useState<boolean>(true);
-  const [has_searched, setHasSearched] = useState<boolean>(false);
+  const { players, loading_players, load_players_success, has_searched, getPlayers } = useSearch();
 
   const [player_stats, setPlayerStats] = useState<PlayerBoxscoreInfo>();
   const [loading_player_stats, setLoadingPlayerStats] = useState<boolean>(false);
@@ -19,28 +17,6 @@ export default function PlayersScreen() {
 
   const [modal_visible, setModalVisible] = useState<boolean>(false);
   const [playoffs_visible, setPlayoffsVisible] = useState<boolean>(false);
-
-  const getPlayers = async (player_name: string) => {
-    setLoadingPlayers(true);
-    try {
-      const response = await fetch(api_uri + `/search-player/${player_name}`);
-      if (response.ok) {
-        const json = await response.json();
-        setPlayers(json);
-        setLoadPlayersSuccess(true);
-      } else {
-        console.error(`Player search failed.`);
-        setPlayers([]);
-        setLoadPlayersSuccess(false);
-      }
-    } catch (error) {
-      console.error(error);
-      setPlayers([]);
-      setLoadPlayersSuccess(false);
-    }
-    setHasSearched(true);
-    setLoadingPlayers(false);
-  };
 
   const getPlayerStats = async (player_id: number) => {
     setLoadingPlayerStats(true);
