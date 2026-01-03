@@ -118,6 +118,7 @@ export const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     textAlign: 'center',
+    backgroundColor: '#fff'
   },
   SearchResultDisplay: {
     flex: 1
@@ -268,5 +269,51 @@ export const styles = StyleSheet.create({
   NewsCardSubtitle: {
     fontStyle: 'italic',
     margin: 1
+  },
+  SearchComponentContainer: {
+    backgroundColor: '#eee',
+    padding: 8,
+    width: '50%',
+    borderRadius: 12,
+    flexDirection: 'column',
+  },
+  SearchComponentHeader: {
+    textAlign: 'center',
+    margin: 4,
+    fontWeight: 600,
+    color: '#333',
+    fontSize: 18,
+    fontStyle: 'italic'
+  },
+  SearchComponentBody: {
+    flexDirection: 'row',
+    columnGap: 6,
+    margin: 4
+  },
+  SearchComponentButton: {
+    borderRadius: 12,
+    backgroundColor: '#31396d',
+    padding: 6
+  },
+  SearchResultExit: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 12,
+    backgroundColor: '#31396d',
+    padding: 4,
+    columnGap: 4
+  },
+  SearchResultExitText: {
+    color: '#fff'
+  },
+  SearchComponentPlayerItem: {
+    flexDirection: 'row',
+    columnGap: 6,
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 2
   }
 });

@@ -84,7 +84,7 @@ type ArticleInfo = {
 
 type CompareMode = {
   mode_type: string;
-  season_name: string;
+  season_name: string | undefined;
 }
 
 type ComparisonList = {
