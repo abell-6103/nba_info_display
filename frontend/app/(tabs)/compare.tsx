@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { View, Text, TextInput, Image, Pressable, ActivityIndicator, ScrollView } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { styles } from '../styles';
-import { CompareMode, PlayerCompareResult, PlayerSearchInfo } from '../types';
+import { CompareMode, PlayerBoxscoreInfo, PlayerCompareResult, PlayerSearchInfo } from '../types';
 import { useSearch } from '../hooks/SearchHook';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
@@ -54,8 +54,115 @@ export default function Compare() {
   }, [comparison_target])
 
   function Comparison() {
+    function ExitButton() {
+      function onPress() {
+        resetSearch();
+        setComparisonTarget([]);
+      }
+
+      return (
+        <Pressable style={styles.SearchResultExit} onPress={onPress}>
+          <Ionicons name="arrow-back-outline" color="#fff" />
+          <Text style={styles.SearchResultExitText}>Exit</Text>
+        </Pressable>
+      )
+    }
+
+    function PlayerIcon({ player }: { player: PlayerBoxscoreInfo }) {
+      return (
+        <View style={{alignItems: 'center'}}>
+          <Image source={{ uri: player.player_headshot }} style={styles.ComparisonHeadshot} />
+          <Text style={styles.ComparisonPlayerText}>{player.player_name}</Text>
+        </View>
+      )
+    }
+
+    function StatBox({name, value, highlight}: {name: string, value: number, highlight: boolean}) {
+      return (
+        <View style={styles.StatBox}>
+          <Text style={styles.StatBoxName}>{name}</Text>
+          <Text style={highlight ? (styles.StatBoxTextHighlight) : (styles.StatBoxTextBasic)}>{value}</Text>
+        </View>
+      )
+    }
+
+    function PlayerColumn({ player, index }: { player: PlayerBoxscoreInfo | undefined, index: number }) {
+      function getHighlight(value: number | undefined): boolean {
+        if (value === undefined) {
+          return false;
+        } 
+        if (index === 0) {
+          return value > 0
+        } else if (index === 1) {
+          return value < 0
+        }
+        return false;
+      }
+      
+      let source;
+      if (comparison?.mode.mode_type === "career") {
+        source = player?.stats.regular.pergame.career;
+      } else {
+        source = player?.stats.regular.pergame.season[comparison?.mode.season_name];
+      }
+
+      return (
+        player === undefined ? (
+          <></>
+        ) : (
+          <View style={styles.ComparisonColumn}>
+            <PlayerIcon player={player} />
+            <StatBox name='Points'
+            value={source.pts.toFixed(1)}
+            highlight={getHighlight(comparison?.result.pergame.pts)}/>
+            <StatBox name='Rebounds'
+            value={source.reb.toFixed(1)}
+            highlight={getHighlight(comparison?.result.pergame.reb)}/>
+            <StatBox name='Assists'
+            value={source.ast.toFixed(1)}
+            highlight={getHighlight(comparison?.result.pergame.ast)}/>
+            <StatBox name='FG%'
+            value={source.fg_pct.toFixed(3)}
+            highlight={getHighlight(comparison?.result.pergame.fg_pct)}/>
+            <StatBox name='FG3%'
+            value={source.fg3_pct.toFixed(3)}
+            highlight={getHighlight(comparison?.result.pergame.fg3_pct)}/>
+            <StatBox name='FT%'
+            value={source.ft_pct.toFixed(3)}
+            highlight={getHighlight(comparison?.result.pergame.ft_pct)}/>
+            <StatBox name='Minutes/Game'
+            value={source.min.toFixed(1)}
+            highlight={getHighlight(comparison?.result.pergame.min)}/>
+            <StatBox name='Blocks'
+            value={source.blk.toFixed(1)}
+            highlight={getHighlight(comparison?.result.pergame.blk)}/>
+            <StatBox name='Steals'
+            value={source.stl.toFixed(1)}
+            highlight={getHighlight(comparison?.result.pergame.stl)}/>
+            <StatBox name='Fouls'
+            value={source.pf.toFixed(1)}
+            highlight={getHighlight(comparison?.result.pergame.pf)}/>
+            <StatBox name='Turnovers'
+            value={source.tov.toFixed(1)}
+            highlight={getHighlight(comparison?.result.pergame.tov)}/>
+          </View>
+        )
+
+      )
+    }
+
     return (
-      <></>
+      <View style={styles.table}>
+        <View style={styles.tableHeader}>
+          <ExitButton />
+        </View>
+        <ScrollView>
+          <View style={styles.ComparisonContainer}>
+            <PlayerColumn player={comparison?.player_1} index={0} />
+            <PlayerColumn player={comparison?.player_2} index={1} />
+          </View>
+        </ScrollView>
+      </View>
     )
   }
 
@@ -129,7 +236,7 @@ export default function Compare() {
           prev.filter((_, item_index) => item_index !== index)
         )
       }
-      
+
       return (
         <View style={styles.SearchComponentPlayerItem}>
           <Text>{player.player_name}</Text>
@@ -169,7 +276,7 @@ export default function Compare() {
       {loading_players || comparison_loading ? (
         <ActivityIndicator animating={true} />
       ) : (
-        comparison_target.length >= 2 ? (
+        comparison_target.length >= 2 && comparison_load_success ? (
           <Comparison />
         ) : (
           has_searched ? (
@@ -179,7 +286,6 @@ export default function Compare() {
           )
         )
       )}
-
     </View>
   )
 }

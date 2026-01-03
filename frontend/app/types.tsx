@@ -46,6 +46,7 @@ type StatInfo = {
   stl: number;
   pts: number;
   pf: number;
+  tov: number;
 }
 
 type PlayerBoxscoreInfo = {

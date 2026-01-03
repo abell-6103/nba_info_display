@@ -315,5 +315,59 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 2
+  },
+  ComparisonHeadshot: {
+    width: 128,
+    height: 128,
+    backgroundColor: "#fff",
+    resizeMode: 'cover',
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  ComparisonPlayerText: {
+    color: '#000',
+    textAlign: 'center',
+    fontWeight: 600,
+    margin: 4,
+    fontSize: 16
+  },
+  ComparisonContainer: {
+    flex: 1,
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-evenly'
+  },
+  ComparisonColumn: {
+    flexDirection: 'column',
+    flex: 1,
+    alignItems: 'center',
+    padding: 8,
+    justifyContent: 'space-evenly'
+  },
+  StatBox: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'column',
+    margin: 6,
+    height: 60
+  },
+  StatBoxName: {
+    fontSize: 12,
+    margin: 2,
+    fontWeight: 600
+  },
+  StatBoxTextHighlight: {
+    fontSize: 20,
+    fontWeight: 800,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 1.5,
+    paddingHorizontal: 8,
+    textAlign: 'center'
+  },
+  StatBoxTextBasic: {
+    fontSize: 20,
+    fontWeight: 600,
+    textAlign: 'center'
   }
 });
